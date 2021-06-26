@@ -17,8 +17,22 @@
     Contents
         01. 기본 사용법 & 용어정리
         02. 파일 읽기
-        03. Ctrl + D를 누르면 하나씩 선택하여 수정이 가능함
-        046 데이터 선택
+        03. 기본 정보 알아보는 함수
+        04. 데이터선택
+        05. Null 비어있는 값
+        06. 복사, 추가, 삭제
+        07. 통계값 다루기 
+        08. 피벗 테이블
+        09. GroupBy
+        10. Nan 값 처리
+        11. 삭제(drop), 합치기(concat), 병합(merge)
+        12. merge (병합)
+        13. Series (열)
+        14. apply 
+        15. 산술연산 
+        16. select_dtypes
+        17. 원핫인코딩 (One-hot-encoding)
+
 """
 
 """
@@ -117,7 +131,7 @@ def pandas_02():
     data = pd.read_excel(path +'/file_data/company.xlsx', engine='openpyxl')
     print(data.head())
 
-# pandas_02()
+pandas_02()
 
 def pandas_03():
 
@@ -549,7 +563,7 @@ def pandas_09():
 
 def pandas_10():
     """
-        10. Man 값 처리
+        10. Nan 값 처리
 
             10_01. fillna()
                 Nan 값에 대하여 채워주는 함수
@@ -623,7 +637,7 @@ def pandas_10():
 
 def pandas_11():
     """
-        11. 삭제(drop), 합치기(concat), 병합(merge)
+        11. 삭제(drop), 합치기(concat)
             행과 열을 제거하는 함수
             option :
                 axis        : 0, 1 (row del (Default) , column del)
@@ -830,7 +844,7 @@ def pandas_14():
         topic
             Pandas 모듈
         content
-            14. apply (열)
+            14. apply
         Describe
             Series나 DataFraem에 좀 더 구체적인 로직을 적용하고 싶은 경우 활용
                 - apply를 적용하기 위해서는 함수가 먼저 정의되어야 합니다.
@@ -888,15 +902,13 @@ def pandas_15():
         topic
             Pandas 모듈
         content
-            15. 데이터 전처리
+            15. 산술연산 
         Describe
             산술연산
         sub Contents
             01. Column, 숫자 연산
             02. 통계연산
             03. 데이터 프레임간의 연산
-
-
 
     """
     print("\n", "=" * 5, "15. ", "=" * 5)
@@ -1042,11 +1054,11 @@ def pandas_fn_rename():
         topic
             Pandas 모듈
         content
-            df.rename(columns={'before Column":'after Column'});
+            칼럼 바꾸는 메소드
         Describe
             칼럼 바꾸는 메소드
         sub Contents
-            01.
+            01. df.rename(columns={'before Column":'after Column'});
     """
     print("\n", "=" * 5, "fn_rename. ", "=" * 5)
     import pandas as pd
@@ -1187,7 +1199,7 @@ def pandas_ex02():
     print(pd.pivot_table(df_00, index='연도', columns='규모', values='분양가격'))
 
 
-pandas_ex02()
+# pandas_ex02()
 
 def pandas_temp():
     """
