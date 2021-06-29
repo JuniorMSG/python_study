@@ -36,9 +36,11 @@ import os
 
 
 def font_set():
-    font_path = "C:\Windows\Fonts\H2HDRM.TTF"
+    font_path = "C:\Windows\Fonts\HYGTRE.TTF"
     font = font_manager.FontProperties(fname=font_path).get_name()
     plt.rc('font', family=font)
+    # RuntimeWarning: Glyph 8722 missing from current font.
+    plt.rc('axes', unicode_minus=False)
 
 
 def data_set():
@@ -423,7 +425,7 @@ def matplotlib_06():
             02. multi 그래프 그리기
             03. 기타 옵션 넣어서 그리기
     """
-    print("\n", "=" * 5, "temp. 기본설정. ", "=" * 5)
+    print("\n", "=" * 5, "06. 기본설정. ", "=" * 5)
 
     # 폰트 설정
     font_set()
@@ -473,7 +475,200 @@ def matplotlib_06():
     plt.grid()
     plt.show()
 
-matplotlib_06()
+# matplotlib_06()
+
+
+def matplotlib_07():
+    """
+        subject
+            Data analysis module - visualization library
+        topic
+            matplotlib 모듈
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+        content
+            07. Areaplot
+
+        Describe
+            에어리가 색칠된 그래프
+            겹치는 부분을 나타낼때 좋다.
+        sub Contents
+            01. 폰트설정
+    """
+    print("\n", "=" * 5, "07. 기본설정. ", "=" * 5)
+
+    # 폰트 설정
+    font_set()
+    # 데이터 설정
+    x = np.arange(1, 31)
+    y_1 = np.random.randint(low=4, high=30, size=30)
+    y_2 = np.random.randint(low=4, high=20, size=30)
+    y_3 = np.random.randint(low=4, high=10, size=30)
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    plt.fill_between(x, y_1, color="red", alpha=0.3)
+    plt.plot(x, y_1, color="red", alpha=0.8)
+    plt.show()
+
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    plt.fill_between(x, y_1, color="red", alpha=0.2)
+    plt.fill_between(x, y_2, color="green", alpha=0.2)
+    plt.fill_between(x, y_3, color="blue", alpha=0.2)
+    plt.show()
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+# matplotlib_07()
+
+
+def matplotlib_08():
+    """
+        subject
+            Data analysis module - visualization library
+        topic
+            matplotlib 모듈
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+        content
+            08. Histogram
+        Describe
+            데이터의 밀도를 보고 싶을때 사용한다.
+
+        sub Contents
+            01. 폰트설정
+    """
+    print("\n", "=" * 5, "08. 기본설정. ", "=" * 5)
+
+    # 폰트 설정
+    font_set()
+    n = 100000
+    bins = 30
+
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    # 균일 분포의 정수 난수 1개 생성
+    x = np.random.randint(n)
+    print(x)
+    plt.hist(x, bins=bins)
+    plt.show()
+
+    # 0부터 1사이의 균일 분포에서 난수 array생성
+    x = np.random.rand(n)
+    plt.hist(x, bins=bins)
+    plt.show()
+
+    # 가우시안 표준 정규 분포에서 난수 array생성
+    x = np.random.randn(n)
+    plt.hist(x, bins=bins)
+    plt.show()
+
+    print("\n", "=" * 3, "02. 다중 Histogram", "=" * 3)
+    x = np.random.randn(n)
+    fig, axs = plt.subplots(1, 3, sharey=True, tight_layout=True)
+    axs[0].hist(x, bins=bins)
+    axs[1].hist(x, bins=bins*2)
+    axs[2].hist(x, bins=bins*5)
+    plt.show()
+    print("\n", "=" * 3, "03. Density 표기 (%)", "=" * 3)
+
+    x = np.random.randn(n)
+    fig, axs = plt.subplots(1, 2, tight_layout=True)
+    axs[0].hist(x, bins=bins, density=True)
+    axs[1].hist(x, bins=bins, density=True, cumulative=True)
+    plt.show()
+
+# matplotlib_08()
+
+
+def matplotlib_09():
+    """
+        subject
+            Data analysis module - visualization library
+        topic
+            matplotlib 모듈
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+        content
+            09. Pie Char
+        Describe
+            점유율을 표현하고 싶을때 많이 사용
+            explode     : 파이에서 툭 튀어저 나온 비율
+            autopct     : 퍼센트 자동으로 표기
+            shadow      : 그림자 표시
+            startangle  : 파이를 그리기 시작할 각도
+        sub Contents
+            01. 폰트설정
+    """
+    print("\n", "=" * 5, "09. 기본설정. ", "=" * 5)
+
+    # 폰트 설정
+    font_set()
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    data_labels = ["SBUX", 'KO', 'PEP']
+    sizes = [20, 40.5, 39.5]
+    explode = [0.3, 0, 0]
+
+    patches, texts, autoexts = plt.pie(sizes, explode=explode
+                                       , labels=data_labels
+                                       , autopct='%1.1f%%'
+                                       , shadow=True
+                                       , startangle=90
+                                       )
+    plt.title('beverage chart')
+    for t in texts:
+        t.set_fontsize(12)
+        t.set_color('gray')
+
+    for t in autoexts:
+        t.set_fontsize(18)
+        t.set_color('white')
+
+    plt.show()
+    print("\n", "=" * 3, "02.", "=" * 3)
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+# matplotlib_09()
+
+def matplotlib_10():
+    """
+        subject
+            Data analysis module - visualization library
+        topic
+            matplotlib 모듈
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+        content
+            10. Boxplot
+        Describe
+            폰트설정, 기본설정
+        sub Contents
+            01. 폰트설정
+    """
+    print("\n", "=" * 5, "10. 기본설정. ", "=" * 5)
+
+    # 폰트 설정
+    font_set()
+
+    spread = np.random.rand(100) * 250
+    center = np.ones(100) * 100
+    fl_high = np.random.rand(50) * 100 + 250
+    fl_low  = np.random.rand(50) * -100
+    data = np.concatenate((spread, center, fl_high, fl_low))
+    # concatenate - 순차적으로 엮다 - 배열 합치기 역활을 수행한다.
+    data = pd.DataFrame(data)
+    data_des = data.describe()[0]
+    IQR = data_des['75%'] - data_des['25%'] 
+    print(IQR)
+
+    plt.boxplot(data)
+    plt.tight_layout()
+    plt.show()
+
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    print("\n", "=" * 3, "02.", "=" * 3)
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+matplotlib_10()
 
 def matplotlib_temp():
     """
@@ -501,31 +696,3 @@ def matplotlib_temp():
     print("\n", "=" * 3, "03.", "=" * 3)
 
 # matplotlib_temp()
-
-def matplotlib_temp():
-    """
-        subject
-            Data analysis module - visualization library
-        topic
-            matplotlib 모듈
-            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
-        content
-            temp
-        Describe
-            폰트설정, 기본설정
-        sub Contents
-            01. 폰트설정
-    """
-    print("\n", "=" * 5, "temp. 기본설정. ", "=" * 5)
-
-    # 폰트 설정
-    font_set()
-    # 데이터 설정
-    df_00 = data_set()
-
-    print("\n", "=" * 3, "01.", "=" * 3)
-    print("\n", "=" * 3, "02.", "=" * 3)
-    print("\n", "=" * 3, "03.", "=" * 3)
-
-# matplotlib_temp()
-
