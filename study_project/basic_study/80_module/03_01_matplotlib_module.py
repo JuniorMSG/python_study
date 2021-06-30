@@ -635,6 +635,7 @@ def matplotlib_10():
         topic
             matplotlib 모듈
             https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+            https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.boxplot.html
         content
             10. Boxplot
         Describe
@@ -647,28 +648,169 @@ def matplotlib_10():
     # 폰트 설정
     font_set()
 
-    spread = np.random.rand(100) * 250
-    center = np.ones(100) * 100
-    fl_high = np.random.rand(50) * 100 + 250
-    fl_low  = np.random.rand(50) * -100
+    spread = np.random.rand(50) * 100
+    center = np.ones(25) * 50
+    fl_high = np.random.rand(20) * 100 + 100
+    fl_low  = np.random.rand(20) * -100
     data = np.concatenate((spread, center, fl_high, fl_low))
     # concatenate - 순차적으로 엮다 - 배열 합치기 역활을 수행한다.
-    data = pd.DataFrame(data)
-    data_des = data.describe()[0]
-    IQR = data_des['75%'] - data_des['25%'] 
-    print(IQR)
+
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    data_des = pd.DataFrame(data).describe()[0]
+    IQR = (data_des['75%'] - data_des['25%']) * 1.5
+    print("3Q", data_des['75%'])
+    print("1Q", data_des['25%'])
+    print("Median", data_des['50%'])
+    print("IQR", IQR)
+    print("Lower Whisker :", data_des['25%'] - IQR)
+    print("Upper Whisker :", data_des['75%'] + IQR)
+    print("possible outliers를 보기 위해서 적절")
 
     plt.boxplot(data)
     plt.tight_layout()
     plt.show()
 
+    print("\n", "=" * 3, "02.", "=" * 3)
+
+    spread = np.random.rand(50) * 100
+    center = np.ones(25) * 40
+    fl_high = np.random.rand(20) * 100 + 100
+    fl_low  = np.random.rand(20) * -100
+    data2 = np.concatenate((spread, center, fl_high, fl_low))
+
+    d2 = [data, data2, data[::5]]
+
+    plt.boxplot(d2)
+    plt.tight_layout()
+    plt.show()
+
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+    marker = dict(markerfacecolor='r', marker='D')
+    plt.boxplot(d2,
+                labels=['data1', 'data2', 'data2-2'],
+                vert=False, flierprops=marker)
+    plt.tight_layout()
+    plt.show()
+
+
+# matplotlib_10()
+
+def matplotlib_11():
+    """
+        subject
+            Data analysis module - visualization library
+        topic
+            matplotlib 모듈
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+        content
+            11. 3D 그래프
+        Describe
+            폰트설정, 기본설정
+        sub Contents
+            01. 폰트설정
+    """
+    print("\n", "=" * 5, "11. 기본설정. ", "=" * 5)
+    from mpl_toolkits import mplot3d
+    # 폰트 설정
+    font_set()
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+
+
 
     print("\n", "=" * 3, "01.", "=" * 3)
+    z = np.linspace(0, 15, 1000)
+    x = np.sin(z)
+    y = np.cos(z)
+    ax.plot(x, y, z, 'gray')
+    plt.show()
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+    sample_size = 200
+    x = np.cumsum(np.random.normal(0, 1, sample_size))
+    y = np.cumsum(np.random.normal(0, 1, sample_size))
+    z = np.cumsum(np.random.normal(0, 1, sample_size))
+
+    ax.plot3D(x, y, z, alpha=0.8, marker="D")
+    plt.show()
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
+
+    sample_size = 1000
+    x = np.cumsum(np.random.normal(0, 10, sample_size))
+    y = np.cumsum(np.random.normal(0, 10, sample_size))
+    z = np.cumsum(np.random.normal(0, 10, sample_size))
+
+    ax.scatter(x, y, z, c=z, s=20, alpha=0.5, cmap='spring', marker="D")
+    plt.show()
+
+    print("\n", "=" * 3, "04. 등고선", "=" * 3)
+    x = np.linspace(-6, 6, 30)
+    y = np.linspace(-6, 6, 30)
+    x, y = np.meshgrid(x, y)
+    z = np.sin(np.sqrt(x**2 + y**2))
+
+    fig = plt.figure(figsize=(12, 6))
+    ax = plt.axes(projection="3d")
+
+    ax.contour3D(x, y, z, 20, cmap='spring')
+    plt.show()
+
+
+# matplotlib_11()
+
+
+def matplotlib_12():
+    """
+        subject
+            Data analysis module - visualization library
+        topic
+            matplotlib 모듈
+            https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html#module-matplotlib.pyplot
+        content
+            12. imshow
+        Describe
+            이미지 데이터와 유사하게 행과 열을 가진 2차원의 데이터를 시각화 할 때 사용한다.
+            load_digits : 0 ~ 16 값을 가지는 array로 이루어져 있다.
+            1개의 array는 8*8 배열 안에 표현되어 있으며 숫자는 0~9까지 이루어져 있다.
+        sub Contents
+            01. 폰트설정
+    """
+    print("\n", "=" * 5, "12. 기본설정. ", "=" * 5)
+    # pip install scikit-learn
+    from sklearn.datasets import load_digits
+
+    # 폰트 설정
+    font_set()
+    digits = load_digits()
+    data_img = digits.images[:10]
+
+    # 1채널
+    print(data_img[0])
+
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+
+    fig, axes = plt.subplots(nrows=2, ncols=5, sharex=True, figsize=(12, 6), sharey=True)
+    for i in range(10):
+        axes[i//5][i%5].imshow(data_img[i], cmap="spring")
+        axes[i//5][i%5].set_title(str(i), fontsize=20)
+
+    plt.show()
+
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
 
 
-matplotlib_10()
+matplotlib_12()
 
 def matplotlib_temp():
     """
