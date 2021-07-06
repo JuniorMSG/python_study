@@ -16,6 +16,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.impute import SimpleImputer
+
+import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
@@ -185,7 +187,6 @@ def preprocessing_03():
     titanic[['embarked', 'deck']] = imputer.fit_transform(titanic[['embarked', 'deck']])
     print(titanic[['embarked', 'deck']] .isnull().sum())
 
-
 # preprocessing_03()
 
 
@@ -246,8 +247,7 @@ def preprocessing_04():
 
     print("\n", "=" * 3, "03. ", "=" * 3)
 
-
-# preprocessing_04()
+# preprocessing_04(
 
 
 def preprocessing_05():
@@ -291,7 +291,6 @@ def preprocessing_05():
 
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
-
 
 # preprocessing_05()
 
@@ -347,7 +346,6 @@ def preprocessing_06():
     print('mean :', scaled.mean(), 'std :', scaled.std())
     print(round(scaled.mean()), round(scaled.std()))
 
-
 # preprocessing_06()
 
 
@@ -356,7 +354,7 @@ def preprocessing_07():
         subject
             Machine_Running
         topic
-            preprocessing_Running
+            preprocessing classification
 
         content
             07. sklearn.dataset에서 제공해주는 샘플 데이터 활용하기
@@ -376,6 +374,8 @@ def preprocessing_07():
     import warnings
 
     print("\n", "=" * 5, "07. sklearn.dataset에서 제공해주는 샘플 데이터 활용하기", "=" * 5)
+
+    print("\n", "=" * 3, "01.", "=" * 3)
     # iris data set
 
     from sklearn.datasets import load_iris
@@ -388,27 +388,466 @@ def preprocessing_07():
     # target : label data (수치형)
     # target_names : label의 이름 (문자형)
 
-    data = iris['data'][:5]
-    print(data)
-    data = iris['feature_names'][:5]
-    print(data)
+    data = iris['data']
+    print(data[:5])
+    feature_names = iris['feature_names']
+    print(feature_names[:5])
+
+    target = iris['target']
+    print(target[:5])
 
     # sepal : 꼿 받침
     # peatal : 꽃잎
+    print("\n", "=" * 3, "02.", "=" * 3)
+    df_iris = pd.DataFrame(data, columns=feature_names)
+    df_iris['target'] = target
+    print(df_iris.head())
+
+    sns.scatterplot('sepal length (cm)', 'sepal width (cm)', hue='target', palette='spring', data=df_iris)
+    plt.title('sepal')
+    plt.show()
+
+    sns.scatterplot('petal width (cm)', 'petal length (cm)', hue='target', palette='spring', data=df_iris)
+    plt.title('petal')
+    plt.show()
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+    # 차원 축소
+    from mpl_toolkits.mplot3d import Axes3D
+    from sklearn.decomposition import PCA
+
+    fig = plt.figure(figsize=(9, 6), num='Demension reduce')
+    ax = Axes3D(fig, elev=-150, azim=110)
+    X_reduce = PCA(n_components=3).fit_transform(df_iris.drop('target', 1))
+    ax.scatter(X_reduce[:, 0], X_reduce[:, 1], X_reduce[:, 2], c=df_iris['target'], cmap=plt.cm.Set1, edgecolors='k', s=40)
+    ax.set_title('iris 3D')
+    ax.set_xlabel('x')
+    ax.w_xaxis.set_ticklabels([])
+    ax.set_ylabel('y')
+    ax.w_yaxis.set_ticklabels([])
+    ax.set_zlabel('z')
+    ax.w_zaxis.set_ticklabels([])
+
+    plt.show()
+
+    print("\n", "=" * 3, "04. 머신러닝 데이터셋 만들기", "=" * 3)
+    from sklearn.model_selection import train_test_split
+
+    # drop 메서드를 이용하면 선택한 값이 삭제된 새로운 객체를 얻을 수 있음.
+    # train_test_split(feature data, target data)
+
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'])
+
+    print('train : ', x_train.shape, y_train.shape)
+    print('valid : ', x_valid.shape, y_valid.shape)
+
+    sns.countplot(y_train)
+    plt.show()
+
+    # stratify 특정 칼럼 기준으로 클래스의 분포를 균등하게 배분한다.
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+    print('train : ', x_train.shape, y_train.shape)
+    print('valid : ', x_valid.shape, y_valid.shape)
+
+    sns.countplot(y_train)
+    plt.show()
+
+# preprocessing_07()
+
+
+def preprocessing_08():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            08. Logistic Regression (로지스틱 회귀)
+            https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+        Describe
+            로지스틱 회귀(Logistic Regression)는 영국의 통계학자인 D. R. Cox가 1958년에 제안한 확률 모델
+            독립 변수의 선형 결합을 이용하여 사건의 발생 가능성을 예측하는데 사용되는 통계 기법
+
+            Logistic Regression, 서포트 백터 머신 (SVM)과 같은 알고리즘은 이진 부류만 가능한데 (2개의 클래스만)
+            3개 이상의 클래스에 대한 판별을 진행하는 경우 특정한 전략이 필요합니다.
+
+            OvR 전략을 선호한다.
+            one-vs-rest(OvR)    : K개의 클래스가 존재할 때, 1개의 클래스를 제외한 다른 클래스를 K개 만들어,
+                                  각각의 이진 분류에 대한 확률을 구하고 총합을 통해 최종 클래스를 판별
+
+            one-vs-one(OvO)     : 4개의 계절을 구분하는 클래스가 존재한다고 가정했을 때
+                                  0vs1, 0vs2, 0vs3, 1vs2, 1vs3, 2vs3 까지 Nx(n-1)/2 개의 분류기를 만들어서
+                                  가장 많이 양성으로 선택된 클래스를 판별  4*3 / 2 = 6
+
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "08. Logistic Regression (로지스틱 회귀)", "=" * 5)
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.datasets import load_iris
+    # 데이터 선언
+    iris = load_iris()
+    df_iris = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    df_iris['target'] = iris['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+
+    # 모델 선언
+    ir_model = LogisticRegression(max_iter=500)
+    # 모델 학습
+    ir_model.fit(x_train, y_train)
+    # 예측
+    ir_pred = ir_model.predict(x_valid)
+    print(ir_pred[:10])
+    # 평가
+    print((ir_pred == y_valid).mean())
+
+
+# preprocessing_08()
+
+
+def preprocessing_09():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            09. stochastic gradient descent (SGD) : 확률적 경사 하강법
+            https://scikit-learn.org/stable/modules/linear_model.html
+            https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html
+        Describe
+            오차가 가장 적은 지점을 찾아 나갈때
+        sub Contents
+            01.
+    """
+    from sklearn.linear_model import SGDClassifier
+    from sklearn.datasets import load_iris
+    # 데이터 선언
+    iris = load_iris()
+    df_iris = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    df_iris['target'] = iris['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+
+    print("\n", "=" * 5, "09. stochastic gradient descent (SGD) : 확률적 경사 하강법", "=" * 5)
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    # 모델 선언
+    sgd = SGDClassifier()
+
+    # 모델 학습
+    sgd.fit(x_train, y_train)
+
+    # 예측
+    prediction = sgd.predict(x_valid)
+    print((prediction == y_valid).mean())
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+# preprocessing_09()
+
+
+def preprocessing_10():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            10. 하이퍼 파라미터 (hyper-parameter) 튜닝
+        Describe
+            모델 선언시 전달하는 파라미터 옵션을 말한다.
+            알고리즘마다 다르기 때문에 Document를 참조한다.
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "10", "=" * 5)
+    from sklearn.linear_model import SGDClassifier
+    from sklearn.datasets import load_iris
+    # 데이터 선언
+    iris = load_iris()
+    df_iris = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    df_iris['target'] = iris['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    # random_statue=0 하이퍼 파라미터 값을 튜닝할 때는 random_state를 고정해야 한다.
+    # n_jobs 멀티코어 ( -1은 전체 활용 )
+    sgd = SGDClassifier(penalty='elasticnet', random_state=0, n_jobs=-1)
+    sgd.fit(x_train, y_train)
+    prediction = sgd.predict(x_valid)
+    print((prediction == y_valid).mean())
+
+    sgd = SGDClassifier(penalty='l1', random_state=0, n_jobs=-1)
+    sgd.fit(x_train, y_train)
+    prediction = sgd.predict(x_valid)
+    print((prediction == y_valid).mean())
+
+    sgd = SGDClassifier(random_state=0)
+    sgd.fit(x_train, y_train)
+    prediction = sgd.predict(x_valid)
+    print((prediction == y_valid).mean())
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+
+
+# preprocessing_10()
+
+
+def preprocessing_11():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            11. KNeighborsClassifier (최근접 이웃 알고리즘)
+        Describe
+            K-최근접 이웃 (K-Nearest Neighbors) 알고리즘은 분류(Classifier)와 회귀(Regression)에 모두 쓰입니다.
+            처음 접하는 사람들도 이해하기 쉬운 알고리즘이며, 단순한 데이터를 대상으로 분류나 회귀를 할 때 사용합니다.
+
+            복잡한 데이터셋에는 K-Nearest Neighbors 알고리즘은 제대로 된 성능발휘를 하기 힘듭니다.
+            https://www.datacamp.com/community/tutorials/k-nearest-neighbor-classification-scikit-learn
+
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "11", "=" * 5)
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.datasets import load_iris
+    # 데이터 선언
+    iris = load_iris()
+    df_iris = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    df_iris['target'] = iris['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    knc = KNeighborsClassifier()
+    knc.fit(x_train, y_train)
+    knc_pred = knc.predict(x_valid)
+    print((knc_pred == y_valid).mean())
+
+    knc = KNeighborsClassifier(n_neighbors=3)
+    knc.fit(x_train, y_train)
+    knc_pred = knc.predict(x_valid)
+    print((knc_pred == y_valid).mean())
+
+    knc = KNeighborsClassifier(n_neighbors=9)
+    knc.fit(x_train, y_train)
+    knc_pred = knc.predict(x_valid)
+    print((knc_pred == y_valid).mean())
+
+
+# preprocessing_11()
+
+
+def preprocessing_12():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            12. SVC ( 서포트 벡터 머신 )
+            https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+        Describe
+            새로운 데이터가 어느 카테고리에 속할지 판단하는 비 확률적 이진 선형 분류 모델
+            경계로 표현되는 데이터들 중 가장 큰 폭을 가진 경계를 찾는 알고리즘
+
+            Logistic Regression (로지스틱 회귀)와 같이 이진 분류만 가능하다.
+            OvsR 전략을 사용한다.
+
+        sub Contents
+            01.
+    """
+    from sklearn.svm import SVC
+    from sklearn.datasets import load_iris
+    # 데이터 선언
+    iris = load_iris()
+    df_iris = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    df_iris['target'] = iris['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+
+    print("\n", "=" * 5, "12", "=" * 5)
+    print("\n", "=" * 3, "01.", "=" * 3)
+    # 선언 - 학습 - 예측
+    svc = SVC(random_state=0)
+    svc.fit(x_train, y_train)
+    svc_pred = svc.predict(x_valid)
+    print((svc_pred == y_valid).mean())
+
+    svc = SVC(random_state=1)
+    svc.fit(x_train, y_train)
+    svc_pred = svc.predict(x_valid)
+    print((svc_pred == y_valid).mean())
+
+    print(svc_pred[:5])
+    # 클래스별 확률을 알려주는 decision_function
+    print(svc.decision_function(x_valid)[:5])
+    
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+# preprocessing_12()
+
+
+def preprocessing_13():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            13. Decision Tree (의사 결정 나무)
+            https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
+        Describe
+            스무고개처럼, 나무 가지치기를 통해 소그룹으로 나누어 판별하는 것
+            알고리즘 성능이 나쁘지 않아서 많이 사용한다.
+        sub Contents
+            01. 간단 예시1
+    """
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.datasets import load_iris
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    
+    # 데이터 선언
+    iris = load_iris()
+    df_iris = pd.DataFrame(iris['data'], columns=iris['feature_names'])
+    df_iris['target'] = iris['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_iris.drop('target', 1), df_iris['target'], stratify=df_iris['target'])
+
+    print("\n", "=" * 5, "13. Decision Tree (의사 결정 나무)", "=" * 5)
+
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    dtc = DecisionTreeClassifier(random_state=0)
+    dtc.fit(x_train, y_train)
+    dtc_pred = dtc.predict(x_valid)
+    print((dtc_pred == y_valid).mean())
+
+    dtc = DecisionTreeClassifier(min_samples_split=5, random_state=0)
+    dtc.fit(x_train, y_train)
+    dtc_pred = dtc.predict(x_valid)
+    print((dtc_pred == y_valid).mean())
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+
+    # gini 계수 : 불순도를 의미하며, 계수가 높을 수록 엔트로피가 크다는 의미이다.
+    # 엔트로피가 크다 => 클래스가 혼잡하게 섞여 있다.
+
+    def graph_tree(model):
+        from sklearn.tree import export_graphviz
+        from subprocess import call
+
+        import pydot
+
+
+        path = os.path.dirname(os.path.abspath(__file__))
+
+        # .dot 파일로 export 해줍니다
+        export_graphviz(model, out_file='tree.dot')
+
+        # dot 파일 읽어서 PNG 만들기
+        # 실행이 제대로 안되서 conda에 다시 설치했음.
+        # pip install graphviz
+        # conda install graphviz
+        # vscode에서 실행 안되는데 이유를 모르겠네
+        (graph,) = pydot.graph_from_dot_file(path + '/tree.dot')
+        graph.write_png('image/pre_processing/13.Decision_load_dot.png')
+
+    graph_tree(dtc)
+
+    from sklearn import tree
+    # sklearn의 tree 사용해서 보내기
+    fn = ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
+    cn = ['setosa', 'versicolor', 'virginica']
+
+    fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), dpi=300)
+    # tree.plot_tree(dtc, feature_names=fn, class_names=cn, filled=True)c
+    tree.plot_tree(dtc)
+    print(os.path.dirname(os.path.abspath(__file__)))
+
+    fig.savefig('image/pre_processing/13.Decision_tree_01.png')
+
+    fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), dpi=300)
+    # tree.plot_tree(dtc, feature_names=fn, class_names=cn, filled=True)
+    tree.plot_tree(dtc, feature_names=fn, class_names=cn, filled=True)
+    fig.savefig('image/pre_processing/13.Decision_tree_02.png')
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+    # max_depthp가 너무 깊으면 과적합 오류가 발생할 수 있다.
+
+    dtc = DecisionTreeClassifier(min_samples_split=5, random_state=0, max_depth=2)
+    dtc.fit(x_train, y_train)
+    dtc_pred = dtc.predict(x_valid)
+    print((dtc_pred == y_valid).mean())
+
+    fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), dpi=300)
+    # tree.plot_tree(dtc, feature_names=fn, class_names=cn, filled=True)
+    tree.plot_tree(dtc, feature_names=fn, class_names=cn, filled=True)
+    fig.savefig('image/pre_processing/13.Decision_tree_max_depth_01.png')
+
+
+preprocessing_13()
+
+
+def preprocessing_14():
+    """
+        subject
+            Machine_Running
+        topic
+            preprocessing classification
+
+        content
+            14
+        Describe
+
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "14", "=" * 5)
+    from sklearn.datasets import load_breast_cancer
+    from sklearn.model_selection import train_test_split
+    import numpy as np
+    cancer = load_breast_cancer()
+    print(cancer['DESCR'])
+    df_cancer = pd.DataFrame(cancer['data'], columns=cancer['feature_names'])
+    df_cancer['target'] = cancer['target']
+    x_train, x_valid, y_train, y_valid = train_test_split(df_cancer.drop('target', 1), df_cancer['target'])
+
+
+
+
+
+
 
 
     print("\n", "=" * 3, "01.", "=" * 3)
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
 
-preprocessing_07()
+preprocessing_14()
+
+
 
 def preprocessing_temp():
     """
         subject
             Machine_Running
         topic
-            preprocessing_Running
+            preprocessing classification
 
         content
             temp
@@ -418,6 +857,7 @@ def preprocessing_temp():
             01.
     """
     print("\n", "=" * 5, "temp", "=" * 5)
+
     print("\n", "=" * 3, "01.", "=" * 3)
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
