@@ -33,6 +33,7 @@ import os
 
 
 def font_set():
+    from matplotlib import font_manager, rc
     font_path = "C:\Windows\Fonts\HYGTRE.TTF"
     font = font_manager.FontProperties(fname=font_path).get_name()
     plt.rc('font', family=font)

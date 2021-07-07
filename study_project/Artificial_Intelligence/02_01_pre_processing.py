@@ -800,7 +800,7 @@ def preprocessing_13():
     fig.savefig('image/pre_processing/13.Decision_tree_max_depth_01.png')
 
 
-preprocessing_13()
+# preprocessing_13()
 
 
 def preprocessing_14():
@@ -811,32 +811,90 @@ def preprocessing_14():
             preprocessing classification
 
         content
-            14
+            14. 오차 구하기, 정확도란?
         Describe
 
+            True Positive       : 실제 Positive인 정답을 Positive라고 예측 (True)
+            Tree Negegative     : 실제 Negegative 정답을 Negegative 예측 (True)
+            False Positive      : 실제 Negegative 정답을 Positive 예측 (False)     - 1종 오류
+            False Negegative    : 실제 Positive   정답을 Negegative 예측 (False)   - 2종 오류
+
+            1종 오류는 병이 걸린 사람을 병이 걸리지 않았다고 진단하는 경우이며.
+            2종 오류는 병이 걸리지 않은 사람을 병이 걸렷다고 진단하는 경우이다.
+            여기선 1종 오류가 더 치명적이며 상황에 따라 다르다.
+
+            이러한 오류값을 처리하기 위해서 사용하는 방법이 있다.
+            Accuracy (정확도)
+            confusion matrix (오차 행렬)
+            precision (정밀도)
+            recall (재현율)
+
+            정확도는 아래처럼 구해진다.
+                 TP + TN
+            ------------------
+            TP + TN + FP + FN
+
+            정확도의 역설은 실제 데이터에 Nagative 혹은 Positive 비율이 너무 높아서 희박한 가능성으로 발생할 상황에 대해
+            제대로 된 분류를 평가 할 수 없다는 것.
+
+            ex1) 데이터 수집을 긍정적인 지표만 수집하여 계산식을 작성할 경우
+            ex2) 수집된 데이터중 긍정적인 지표만 사용할 경우
+
+
         sub Contents
-            01.
+            01. Accuracy (정확도)
+            02. 정확도의 역설 (Accuracy Paradox) 예시
+
     """
     print("\n", "=" * 5, "14", "=" * 5)
     from sklearn.datasets import load_breast_cancer
     from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LogisticRegression
+
     import numpy as np
     cancer = load_breast_cancer()
     print(cancer['DESCR'])
     df_cancer = pd.DataFrame(cancer['data'], columns=cancer['feature_names'])
     df_cancer['target'] = cancer['target']
-    x_train, x_valid, y_train, y_valid = train_test_split(df_cancer.drop('target', 1), df_cancer['target'])
+
+    pos = df_cancer.loc[df_cancer['target'] == 1]
+    neg = df_cancer.loc[df_cancer['target'] == 0]
+
+    # 357개
+    print('pos :', pos.value_counts())
+
+    # 212개
+    print('neg :', neg.value_counts())
+
+    print("\n", "=" * 3, "01. 정상 데이터", "=" * 3)
+
+    sample_general = pd.concat([pos, neg], sort=True)
+    x_train, x_valid, y_train, y_valid = train_test_split(sample_general.drop('target', 1), sample_general['target'], random_state=42)
+    model_general = LogisticRegression(max_iter=5000)
+    model_general.fit(x_train, y_train)
+    pred_general = model_general.predict(x_valid)
+
+    print('일반적인 데이터', (pred_general == y_valid).mean())
+
+    pred_error = np.ones(shape=y_valid.shape)
+    print('데이터 강제 조정시', (pred_error == y_valid).mean())
 
 
+    print("\n", "=" * 3, "02. 모수 줄인 데이터", "=" * 3)
 
+    # 모수 줄인 데이터
+    sample_divide = pd.concat([pos, neg[:5]], sort=True)
+    x_train, x_valid, y_train, y_valid = train_test_split(sample_divide.drop('target', 1), sample_divide['target'], random_state=42)
+    model_divide = LogisticRegression(max_iter=5000)
+    model_divide.fit(x_train, y_train)
+    pred_divide = model_divide.predict(x_valid)
 
+    print('일반적인 데이터', (pred_divide == y_valid).mean())
+    pred_error = np.ones(shape=y_valid.shape)
+    print('데이터 강제 조정시', (pred_error == y_valid).mean())
 
-
-
-
-    print("\n", "=" * 3, "01.", "=" * 3)
-    print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
+
 
 preprocessing_14()
 
