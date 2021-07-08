@@ -381,7 +381,7 @@ def regression_02():
     plt.show()
 
 
-# regression_02()
+regression_02()
 
 
 def regression_03():
