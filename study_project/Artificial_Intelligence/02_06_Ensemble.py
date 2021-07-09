@@ -253,7 +253,7 @@ def ensemble_01():
     voting_regression.fit(x_train, y_train)
     voting_pred = voting_regression.predict(x_valid)
     set_data('voting ens', voting_pred, y_valid)
-    view_graph('voting ens', voting_pred, y_valid)
+    # view_graph('voting ens', voting_pred, y_valid)
 
     # voting_classifer = VotingClassifier(models, voting='hard', n_jobs=-1)
     # voting_classifer.fit(x_train, y_train)
@@ -275,19 +275,95 @@ def ensemble_02():
         topic
             앙상블 (Ensemble) 예측
         content
-            02
+            02. Bagging
         Describe
+            Bagging = Bootstrap Aggregating의 줄임말.
+            다양한 샘플링 조합으로 단일 알고리즘 예측을 한 다음에 그거에 대해서 Ensemble 한다.
+
+            Bootstrap = Sample(샘플) + Aggregating = 합산
+            Bootstrap은 여러 개의 dataset을 중첩을 허용하게 하여 샘플링하여 분할하는 방식.
+            EX) 데이터 셋의 구성이 1,2,3,4,5 이면
+            [1, 2, 3] , [1, 3, 4], [2, 3, 5]로 ensemble 함.
+
+            Voting은 여러 알고리즘의 조합에 대한 앙상블
+            Bagging은 하나의 단일 알고리즘에 대하여 여러 개의 샘플 조합으로 앙상블
 
         sub Contents
-            01.
+            01. RandomForest
+                DecisionTree(트리)기반 Bagging 앙상블
+                굉장히 인기있는 앙상블 모델
+                사용성이 쉽고 성능도 우수함
     """
     print("\n", "=" * 5, "02", "=" * 5)
+    from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+
+    # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
+    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    rfr = RandomForestRegressor(random_state=42)
+    rfr.fit(x_train,y_train)
+    rfr_pred = rfr.predict(x_valid)
+    set_data('RF Ensemble', rfr_pred, y_valid)
+    # view_graph('RF Ensemble', rfr_pred, y_valid)
+
+    # random_state          : 랜덤 시드 고정 값, 고정해두고 튜닝할 것
+    # n_jobs                : CPU 사용 갯수
+    # max_depth             : 깊어질 수 있는 최대 깊이, 과대적합 방지용
+    # n_estimators          : 앙상블하는 트리의 개수
+    # max_features          : 최대로 사용할 feature의 개수, 과대적합 방지용
+    # min_samples_splits    : 트리가 분할할 때 최소 샘플의 갯수 default=2, 과대적합 방지용
+    print("\n", "=" * 3, "02.", "=" * 3)
+
+
+    rfr = RandomForestRegressor(random_state=42, n_estimators=1000, max_depth=7, max_features=0.8)
+    rfr.fit(x_train,y_train)
+    rfr_pred = rfr.predict(x_valid)
+    set_data('RF n_estimators=1000 Ensemble', rfr_pred, y_valid)
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+    rfr = RandomForestRegressor(random_state=42, n_estimators=500, max_depth=7, max_features=0.8)
+    rfr.fit(x_train,y_train)
+    rfr_pred = rfr.predict(x_valid)
+    set_data('RF param Ensemble', rfr_pred, y_valid)
+    # view_graph('RF n_estimators=500, Ensemble', rfr_pred, y_valid)
+
+
+ensemble_02()
+
+
+def ensemble_03():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            03. 부스팅 (Boosting)
+        Describe
+            약한 학습기를 순차적으로 학습을 하되, 이전 학습에 대하여 잘못 예측된 데이터에
+            가중치를 부여해 오차를 보완해 나가는 방식입니다.
+            대표적인 Boosting Ensemble
+                1. AdaBoost
+                2. GradientBoost
+                3. LightGBM(LGBM)
+                4. XGBoost
+            장점
+                성능이 매우 우수하다 (Lgbm, XGBoost)
+        sub Contents
+            단점
+                부스팅 알고리즘의 특성상 계속 약점(오분류/잔차)을 보완하려고 하기 때문에 잘못된 레이블링이나 아웃라이어에
+                필요 이상으로 민감할 수 있따.
+                다른 앙상블 대비 학습 시간이 오래걸린다는 단점이존재한다.
+
+            01.
+    """
+    print("\n", "=" * 5, "03", "=" * 5)
     print("\n", "=" * 3, "01.", "=" * 3)
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
 
-# ensemble_02()
-
+ensemble_03()
 
 def ensemble_temp():
     """
