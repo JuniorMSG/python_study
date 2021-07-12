@@ -343,7 +343,7 @@ def matplotlib_04():
     plt.show()
 
 
-# matplotlib_04()
+matplotlib_04()
 
 
 def matplotlib_05():
@@ -517,7 +517,7 @@ def matplotlib_07():
     plt.show()
     print("\n", "=" * 3, "03.", "=" * 3)
 
-# matplotlib_07()
+matplotlib_07()
 
 
 def matplotlib_08():
@@ -810,7 +810,7 @@ def matplotlib_12():
     print("\n", "=" * 3, "03.", "=" * 3)
 
 
-matplotlib_12()
+# matplotlib_12()
 
 def matplotlib_temp():
     """

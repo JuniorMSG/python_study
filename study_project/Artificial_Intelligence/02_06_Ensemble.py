@@ -49,6 +49,7 @@ def font_set():
 
 my_predictions_mse = {}
 my_predictions_mae = {}
+models = {}
 colors = ['r', 'c', 'm', 'y', 'k', 'khaki', 'teal', 'orchid', 'sandybrown',
           'greenyellow', 'dodgerblue', 'deepskyblue', 'rosybrown', 'firebrick',
           'deeppink', 'crimson', 'salmon', 'darkred', 'olivedrab', 'olive',
@@ -57,6 +58,8 @@ colors = ['r', 'c', 'm', 'y', 'k', 'khaki', 'teal', 'orchid', 'sandybrown',
           'peru', 'midnightblue', 'slateblue', 'dimgray', 'cadetblue', 'tomato'
           ]
 
+def last_graph(name, pred, y_valid):
+    view_graph(name, pred, y_valid)
 
 def plot_predictions(name_, pred, actual, axes):
     df = pd.DataFrame({'prediction': pred, 'actual': actual})
@@ -69,9 +72,32 @@ def plot_predictions(name_, pred, actual, axes):
     axes.legend(['prediction', 'actual'], fontsize=12)
 
 
-def set_data(name_, pred, actual):
+def set_data(name_, pred, actual, model):
     global my_predictions_mse
     global my_predictions_mae
+    global models
+
+    # MSE 값 측정
+    mse = mean_squared_error(pred, actual)
+    # MAE 값 측정
+    mae = mean_absolute_error(pred, actual)
+
+    my_predictions_mse[name_] = mse
+    my_predictions_mae[name_] = mae
+    models[name_] = model
+
+    y_value = sorted(my_predictions_mse.items(), key=lambda x: x[1], reverse=True)
+    df_mse = pd.DataFrame(y_value, columns=['model', 'mse'])
+    y_value = sorted(my_predictions_mae.items(), key=lambda x: x[1], reverse=True)
+    df_mae = pd.DataFrame(y_value, columns=['model', 'mae'])
+
+    return df_mse, df_mae
+
+
+def get_data(name_, pred, actual):
+    global my_predictions_mse
+    global my_predictions_mae
+    global models
 
     # MSE 값 측정
     mse = mean_squared_error(pred, actual)
@@ -89,55 +115,63 @@ def set_data(name_, pred, actual):
     return df_mse, df_mae
 
 
+
 def view_graph(name_, pred, actual):
     global colors
 
     fig, axes = plt.subplots(2, 2, sharey=False, tight_layout=True, figsize=(15, 6), num='view')
     fig.suptitle('view', fontsize=15)
+    axes[0, 1] = plt.subplot2grid((2, 2), (0, 1), rowspan=2)
 
-    plot_predictions(name_, pred, actual, axes[0, 0])
+    ax1 = axes[0, 0]
+    ax2 = axes[0, 1]
+    ax3 = axes[1, 0]
 
-    df_mse, df_mae = set_data(name_, pred, actual)
+    plot_predictions(name_, pred, actual, ax1)
+
+    df_mse, df_mae = get_data(name_, pred, actual)
     min_ = df_mse['mse'].min() - 10
     max_ = df_mse['mse'].max() + 10
 
-    axes[0, 1].set_yticks(np.arange(len(df_mse)))
-    axes[0, 1].set_yticklabels(df_mse['model'], fontsize=15)
-    axes[0, 1].set_title('MSE Error', fontsize=18)
+    ax2.set_yticks(np.arange(len(df_mse)))
+    ax2.set_yticklabels(df_mse['model'], fontsize=15)
+    ax2.set_title('MSE Error', fontsize=18)
 
-    bars = axes[0, 1].barh(np.arange(len(df_mse)), df_mse['mse'])
+    bars = ax2.barh(np.arange(len(df_mse)), df_mse['mse'])
 
     for i, v in enumerate(df_mse['mse']):
         idx = np.random.choice(len(colors))
         bars[i].set_color(colors[idx])
-        axes[0, 1].text(v + 2, i, str(round(v, 3)), color='k', fontsize=15, fontweight='bold')
+        ax2.text(v + 2, i, str(round(v, 3)), color='k', fontsize=15, fontweight='bold')
 
-    axes[0, 1].set_xlim(min_, max_)
+    ax2.set_xlim(min_, max_)
 
     min_ = df_mae['mae'].min() - 10
     max_ = df_mae['mae'].max() + 10
 
-    axes[1, 0].set_yticks(np.arange(len(df_mae)))
-    axes[1, 0].set_yticklabels(df_mae['model'], fontsize=15)
-    axes[1, 0].set_title('MAE ERROR', fontsize=18)
+    ax3.set_yticks(np.arange(len(df_mae)))
+    ax3.set_yticklabels(df_mae['model'], fontsize=15)
+    ax3.set_title('MAE ERROR', fontsize=18)
 
-    bars = axes[1, 0].barh(np.arange(len(df_mae)), df_mae['mae'])
+    bars = ax3.barh(np.arange(len(df_mae)), df_mae['mae'])
 
     for i, v in enumerate(df_mae['mae']):
         idx = np.random.choice(len(colors))
         bars[i].set_color(colors[idx])
-        axes[1, 0].text(v + 2, i, str(round(v, 3)), color='k', fontsize=15, fontweight='bold')
+        ax3.text(v + 2, i, str(round(v, 3)), color='k', fontsize=15, fontweight='bold')
 
-    axes[1, 0].set_xlim(min_, max_)
+    ax3.set_xlim(min_, max_)
+
+    plt.tight_layout(True)
     plt.show()
-
 
 def compare_data_set():
     from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, PolynomialFeatures
     from sklearn.linear_model import Ridge, Lasso, ElasticNet
     from sklearn.pipeline import make_pipeline
 
-    models = []
+    global models
+
 
     # 비교군이 너무 많아서 가중치는 4개로 줄임.
     weights = [100, 1, 0.1, 0.001]
@@ -148,59 +182,47 @@ def compare_data_set():
 
     print("\n", "=" * 3, "01. 라쏘 (Lasso) - L1 규제를 활용한 모델", "=" * 3)
     for weight in weights:
-        lasso = Lasso(alpha=weight, max_iter=1000)
-        # 모델에 추가해둠
-        models.append(('lasso_' + str(weight), lasso))
-
+        lasso = Lasso(random_state=42, alpha=weight, max_iter=1000)
         lasso.fit(x_train, y_train)
         pred = lasso.predict(x_valid)
-        set_data('Lasso(alpha={}'.format(weight), pred, y_valid)
+        set_data('Lasso(alpha={}'.format(weight), pred, y_valid, lasso)
 
     print("\n", "=" * 3, "02. 릿지 (Ridge) - L2 규제를 활용한 모델", "=" * 3)
     for weight in weights:
-        ridge = Ridge(alpha=weight , max_iter=1000)
-        # 모델에 추가해둠
-        models.append(('ridge_' + str(weight), ridge))
-
+        ridge = Ridge(random_state=42, alpha=weight , max_iter=1000)
         ridge.fit(x_train, y_train)
         pred = ridge.predict(x_valid)
-        set_data('Ridge(alpha={}'.format(weight), pred, y_valid)
+        set_data('Ridge(alpha={}'.format(weight), pred, y_valid, ridge)
 
     print("\n", "=" * 3, "03. 엘라스틱넷 ( ElasticNt) - L1, L2 규제를 혼합하여 사용한 모델", "=" * 3)
     ratios = [0.2, 0.5, 0.8]
     for ratio in ratios:
-        elasticnet = ElasticNet(alpha=0.5, l1_ratio=ratio , max_iter=1000)
+        elasticnet = ElasticNet(random_state=42, alpha=0.5, l1_ratio=ratio , max_iter=1000)
         # 모델에 추가해둠
-        models.append(('elasticnet_' + str(ratio), elasticnet))
-
         elasticnet.fit(x_train, y_train)
         pred = elasticnet.predict(x_valid)
-        set_data('ElasticNet(alpha={}'.format(ratio), pred, y_valid)
+        set_data('ElasticNet(alpha={}'.format(ratio), pred, y_valid, elasticnet)
 
     print("\n", "=" * 3, "04. 스케일러 적용된 엘라스틱넷 데이터 ", "=" * 3)
     elasticnet_pipline_std = make_pipeline(
         StandardScaler(),
-        ElasticNet(alpha=0.1, l1_ratio=0.2, max_iter=1000)
+        ElasticNet(random_state=42, alpha=0.1, l1_ratio=0.2, max_iter=1000)
     )
     elasticnet_pipline_minmax = make_pipeline(
         MinMaxScaler(),
-        ElasticNet(alpha=0.1, l1_ratio=0.2, max_iter=1000)
+        ElasticNet(random_state=42, alpha=0.1, l1_ratio=0.2, max_iter=1000)
     )
     elasticnet_pipline_rob = make_pipeline(
         RobustScaler(),
-        ElasticNet(alpha=0.1, l1_ratio=0.2, max_iter=1000)
+        ElasticNet(random_state=42, alpha=0.1, l1_ratio=0.2, max_iter=1000)
     )
-
-    models.append(('elasticnet_pipline_std', elasticnet_pipline_std))
-    models.append(('elasticnet_pipline_minmax', elasticnet_pipline_minmax))
-    models.append(('elasticnet_pipline_rob', elasticnet_pipline_rob))
 
     elasticnet_pred_std = elasticnet_pipline_std.fit(x_train, y_train).predict(x_valid)
     elasticnet_pred_minmax = elasticnet_pipline_minmax.fit(x_train, y_train).predict(x_valid)
     elasticnet_pred_rob = elasticnet_pipline_rob.fit(x_train, y_train).predict(x_valid)
-    set_data('elasticnet_pred_std', elasticnet_pred_std, y_valid)
-    set_data('elasticnet_pipline_minmax', elasticnet_pred_minmax, y_valid)
-    set_data('elasticnet_pipline_rob', elasticnet_pred_rob, y_valid)
+    set_data('elasticnet_pred_std', elasticnet_pred_std, y_valid, elasticnet_pipline_std)
+    set_data('elasticnet_pipline_minmax', elasticnet_pred_minmax, y_valid, elasticnet_pipline_minmax)
+    set_data('elasticnet_pipline_rob', elasticnet_pred_rob, y_valid , elasticnet_pipline_rob)
 
     print("\n", "=" * 3, "05. Polynomial 적용된 데이터 ", "=" * 3)
 
@@ -210,11 +232,9 @@ def compare_data_set():
         ElasticNet(alpha=0.1, l1_ratio=0.2, max_iter=1000)
     )
 
-    models.append(('poly_pipeline', poly_pipeline))
     poly_pred = poly_pipeline.fit(x_train, y_train).predict(x_valid)
-    set_data('poly_pipeline', poly_pred, y_valid)
+    set_data('poly_pipeline', poly_pred, y_valid, poly_pipeline)
 
-    view_graph('poly_pipeline', poly_pred, y_valid)
     plt.show()
 
     return x_train, x_valid, y_train, y_valid, models
@@ -252,7 +272,7 @@ def ensemble_01():
     voting_regression = VotingRegressor(models, n_jobs=-1)
     voting_regression.fit(x_train, y_train)
     voting_pred = voting_regression.predict(x_valid)
-    set_data('voting ens', voting_pred, y_valid)
+    set_data('voting ens', voting_pred, y_valid, voting_regression)
     # view_graph('voting ens', voting_pred, y_valid)
 
     # voting_classifer = VotingClassifier(models, voting='hard', n_jobs=-1)
@@ -265,7 +285,7 @@ def ensemble_01():
     print("\n", "=" * 3, "03.", "=" * 3)
 
 
-ensemble_01()
+# ensemble_01()
 
 
 def ensemble_02():
@@ -304,7 +324,7 @@ def ensemble_02():
     rfr = RandomForestRegressor(random_state=42)
     rfr.fit(x_train,y_train)
     rfr_pred = rfr.predict(x_valid)
-    set_data('RF Ensemble', rfr_pred, y_valid)
+    set_data('RF Ensemble', rfr_pred, y_valid, rfr)
     # view_graph('RF Ensemble', rfr_pred, y_valid)
 
     # random_state          : 랜덤 시드 고정 값, 고정해두고 튜닝할 것
@@ -319,13 +339,12 @@ def ensemble_02():
     rfr = RandomForestRegressor(random_state=42, n_estimators=1000, max_depth=7, max_features=0.8)
     rfr.fit(x_train,y_train)
     rfr_pred = rfr.predict(x_valid)
-    set_data('RF n_estimators=1000 Ensemble', rfr_pred, y_valid)
-
+    set_data('RF n_estimators=1000 Ensemble', rfr_pred, y_valid, rfr)
     print("\n", "=" * 3, "03.", "=" * 3)
     rfr = RandomForestRegressor(random_state=42, n_estimators=500, max_depth=7, max_features=0.8)
     rfr.fit(x_train,y_train)
     rfr_pred = rfr.predict(x_valid)
-    set_data('RF param Ensemble', rfr_pred, y_valid)
+    set_data('RF param Ensemble', rfr_pred, y_valid, rfr)
     # view_graph('RF n_estimators=500, Ensemble', rfr_pred, y_valid)
 
 
@@ -346,6 +365,7 @@ def ensemble_03():
             대표적인 Boosting Ensemble
                 1. AdaBoost
                 2. GradientBoost
+                    https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingRegressor.html
                 3. LightGBM(LGBM)
                 4. XGBoost
             장점
@@ -356,14 +376,206 @@ def ensemble_03():
                 필요 이상으로 민감할 수 있따.
                 다른 앙상블 대비 학습 시간이 오래걸린다는 단점이존재한다.
 
+            01. GradientBoost
+    """
+    from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
+    print("\n", "=" * 5, "03", "=" * 5)
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+
+    # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
+    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+
+    gbr = GradientBoostingRegressor(random_state=42)
+    gbr.fit(x_train, y_train)
+    gbr_pred = gbr.predict(x_valid)
+    set_data('GradientBoost Ensemble', gbr_pred, y_valid, gbr)
+
+    # Hyperparameter
+    # random_state 랜덤 시드 고정 값, 고정해두고 튜닝
+    # n_jobs : CPU 사용 개수
+    # learning_rate 학습율, 너무 큰 학습율은 성능을 떨어뜨리고, 너무 작은 학습율은 학습이 느리다. 적절한 값을 찾아야함. n_estimators와 같이 튜닝
+    # default = 0.1
+    # n_estimators : 부스팅 스테이지 수 (랜덤 포레스트 트리의 갯수 설정과 비슷한 개념 default = 100)
+    # learning_rate * n_estimators를 같은 값으로 유지하는게 좋음
+    # subsample : 샘플 사용 비율 (max_features와 비슷한 개념) 과대적합 방지용
+    # min_samples_split : 노드 분할시 최소 샘플의 갯수 default =2 . 과대적합 방지용
+    gbr = GradientBoostingRegressor(random_state=42, learning_rate=0.05, n_estimators=200)
+    gbr.fit(x_train, y_train)
+    gbr_pred = gbr.predict(x_valid)
+    set_data('Gradient 0.05 / 200', gbr_pred, y_valid, gbr)
+
+    gbr = GradientBoostingRegressor(random_state=42, learning_rate=0.05, n_estimators=200, subsample=0.8)
+    gbr.fit(x_train, y_train)
+    gbr_pred = gbr.predict(x_valid)
+    set_data('Gradient 0.05 / 200 subsample', gbr_pred, y_valid, gbr)
+
+    gbr = GradientBoostingRegressor(random_state=42, learning_rate=0.05, n_estimators=200, subsample=0.8, min_samples_split=3)
+    gbr.fit(x_train, y_train)
+    gbr_pred = gbr.predict(x_valid)
+    set_data('Gradient 0.05 / 200 min3', gbr_pred, y_valid, gbr)
+
+    # last_graph('GradientBoost Ensemble', gbr_pred, y_valid)
+
+
+ensemble_03()
+
+def ensemble_04():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            04. XGBoost
+        Describe
+            eXtreme Gradient Boosting
+            - scikit-learn 패키지 아님
+            - 성능이 우수함
+            - GBM 보다 빠르고 성능 향상됨.
+            - 학습시간이 매우 느림
+            # pip install xgboost 100MB가량됨.
+            # GPU버전으로 사용시 GPU도 사용 가능함
+
+        sub Contents
             01.
     """
-    print("\n", "=" * 5, "03", "=" * 5)
+    print("\n", "=" * 5, "04", "=" * 5)
+
+    # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
+    x_train, x_valid, y_train, y_valid, models = compare_data_set()
     print("\n", "=" * 3, "01.", "=" * 3)
+    from xgboost import XGBRegressor, XGBClassifier
+    xgb = XGBRegressor(random_state=42)
+    xgb.fit(x_train, y_train)
+    xgb_pred = xgb.predict(x_valid)
+    set_data('XGBoost Def', xgb_pred, y_valid, xgb)
+
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    # Hyperparameter
+    # random_state 랜덤 시드 고정 값, 고정해두고 튜닝
+    # n_jobs : CPU 사용 개수
+    # learning_rate 학습율, 너무 큰 학습율은 성능을 떨어뜨리고, 너무 작은 학습율은 학습이 느리다. 적절한 값을 찾아야함. n_estimators와 같이 튜닝
+    # default = 0.1
+    # n_estimators : 부스팅 스테이지 수 (랜덤 포레스트 트리의 갯수 설정과 비슷한 개념 default = 100)
+    # learning_rate * n_estimators를 같은 값으로 유지하는게 좋음
+    # subsample : 샘플 사용 비율 (max_features와 비슷한 개념) 과대적합 방지용
+    # min_samples_split : 노드 분할시 최소 샘플의 갯수 default =2 . 과대적합 방지용
+
+    xgb = XGBRegressor(random_state=42, learning_rate=0.025, n_estimators=400, subsample=0.8, max_features=0.1, max_depth=3)
+    xgb.fit(x_train, y_train)
+    xgb_pred = xgb.predict(x_valid)
+    set_data('XGBoost max_depth 3', xgb_pred, y_valid, xgb)
+
+    # last_graph('XGBoost Def', xgb_pred, y_valid)
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+ensemble_04()
+
+
+def ensemble_05():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            05. LightGBM
+        Describe
+            - scikit-learn 패키지 아님
+            - 성능이 우수함
+            - XGBoost 보다 속도가 빠름.
+            pip install lightgbm
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "05", "=" * 5)
+    from lightgbm import LGBMRegressor, LGBMClassifier
+    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    print("\n", "=" * 3, "01.", "=" * 3)
+    lgbm = LGBMRegressor(random_state=42)
+    lgbm.fit(x_train, y_train)
+    lgbm_pred = lgbm.predict(x_valid)
+    set_data('LightGBM Def', lgbm_pred, y_valid, lgbm)
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    # Hyperparameter
+    # random_state 랜덤 시드 고정 값, 고정해두고 튜닝
+    # n_jobs : CPU 사용 개수
+    # learning_rate 학습율, 너무 큰 학습율은 성능을 떨어뜨리고, 너무 작은 학습율은 학습이 느리다. 적절한 값을 찾아야함. n_estimators와 같이 튜닝
+    # default = 0.1
+    # n_estimators : 부스팅 스테이지 수 (랜덤 포레스트 트리의 갯수 설정과 비슷한 개념 default = 100)
+    # learning_rate * n_estimators를 같은 값으로 유지하는게 좋음
+    # colsample_bytree : 샘플 사용 비율 (max_features, subSample와 비슷한 개념) 과대적합 방지용
+
+    # lgbm = LGBMRegressor(random_state=42, learning_rate=0.05, n_estimators=200, colsample_bytree=0.8, subsample=0.8, max_depth=3)
+    # lgbm.fit(x_train, y_train)
+    # lgbm_pred = lgbm.predict(x_valid)
+    # set_data('LightGBM 1', lgbm_pred, y_valid)
+    #
+    # lgbm = LGBMRegressor(random_state=42, learning_rate=0.05, n_estimators=200, colsample_bytree=0.8, subsample=0.8, max_depth=5)
+    # lgbm.fit(x_train, y_train)
+    # lgbm_pred = lgbm.predict(x_valid)
+    # set_data('LightGBM 2', lgbm_pred, y_valid)
+
+    lgbm = LGBMRegressor(random_state=42, learning_rate=0.05, n_estimators=200, colsample_bytree=0.8, subsample=0.8, max_depth=7)
+    lgbm.fit(x_train, y_train)
+    lgbm_pred = lgbm.predict(x_valid)
+    set_data('LightGBM 3', lgbm_pred, y_valid, lgbm)
+
+    # last_graph('LightGBM Def', lgbm_pred, y_valid)
+
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+ensemble_05()
+
+
+def ensemble_06():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            06. Stacking
+        Describe
+            개별 모델이 예측한 데이터를 기반으로 final_estimator 종합하여 예측을 수행
+
+            - 성능을 극으로 끌어올릴 때 활용하기도 한다.
+            - 과대적합을 유발할 수 있다. (데이터셋이 적은경우)
+            # https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.StackingRegressor.html
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "06", "=" * 5)
+    from sklearn.ensemble import StackingRegressor
+    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    # last_graph('LightGBM Def', lgbm_pred, y_valid)
+    print("\n", "=" * 3, "01.", "=" * 3)
+
+    # 모델에서 MSE 값 낮은 순서대로 5개 추출
+    models_grade = sorted(my_predictions_mse.items(), key=lambda x:x[1])
+    model_list = np.array(models_grade[:5])[:, 0]
+
+    get_model_list = []
+    for model in model_list:
+        get_model_list.append((model, models[model]))
+
+    stack_reg = StackingRegressor(get_model_list, final_estimator=get_model_list[0][1], n_jobs=-1)
+    stack_reg.fit(x_train, y_train)
+    stack_pred = stack_reg.predict(x_valid)
+    set_data('StackingRegressor', stack_pred, y_valid, stack_reg)
+    last_graph('StackingRegressor ', stack_pred, y_valid)
+
+
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
 
-ensemble_03()
+ensemble_06()
 
 def ensemble_temp():
     """
