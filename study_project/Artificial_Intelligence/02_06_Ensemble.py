@@ -21,6 +21,12 @@
         https://teddylee777.github.io/machine-learning/ensemble%EA%B8%B0%EB%B2%95%EC%97%90-%EB%8C%80%ED%95%9C-%EC%9D%B4%ED%95%B4%EC%99%80-%EC%A2%85%EB%A5%98-2
         https://teddylee777.github.io/machine-learning/ensemble%EA%B8%B0%EB%B2%95%EC%97%90-%EB%8C%80%ED%95%9C-%EC%9D%B4%ED%95%B4%EC%99%80-%EC%A2%85%EB%A5%98-3
 
+        1. 앙상블은 대체적으로 단일 모델 대비 성능이 좋다.
+        2. 앙상블은 앙상블하는 기업인 Stacking, Weighted Blending도 참고해볼만함.
+        3. 앙상블 모델은 적절한 Hyperparameter 튜닝이 중요하다.
+        4. 앙상블 모델은 대체적으로 학습시간이 더 오래 걸린다.
+        5. 모델 튜닝을 하는 데에 시간이 오래걸린다.
+
     Contents
         01. 보팅 (Voting) - 회귀 (Regression)
         02. 정밀도, 재현률, f1 score
@@ -47,9 +53,15 @@ def font_set():
     # RuntimeWarning: Glyph 8722 missing from current font.
     plt.rc('axes', unicode_minus=False)
 
+data = load_boston()
+df_boston = pd.DataFrame(data['data'], columns=data['feature_names'])
+df_boston['MEDV'] = data['target']
+x_train, x_valid, y_train, y_valid = train_test_split(df_boston.drop('MEDV', 1), df_boston['MEDV'])
+
 my_predictions_mse = {}
 my_predictions_mae = {}
 models = {}
+models_pred = {}
 colors = ['r', 'c', 'm', 'y', 'k', 'khaki', 'teal', 'orchid', 'sandybrown',
           'greenyellow', 'dodgerblue', 'deepskyblue', 'rosybrown', 'firebrick',
           'deeppink', 'crimson', 'salmon', 'darkred', 'olivedrab', 'olive',
@@ -85,6 +97,7 @@ def set_data(name_, pred, actual, model):
     my_predictions_mse[name_] = mse
     my_predictions_mae[name_] = mae
     models[name_] = model
+    models_pred[name_] = pred
 
     y_value = sorted(my_predictions_mse.items(), key=lambda x: x[1], reverse=True)
     df_mse = pd.DataFrame(y_value, columns=['model', 'mse'])
@@ -93,6 +106,24 @@ def set_data(name_, pred, actual, model):
 
     return df_mse, df_mae
 
+
+def get_models(model_count):
+    models_grade = sorted(my_predictions_mse.items(), key=lambda x:x[1])
+    model_list = np.array(models_grade[:model_count])[:, 0]
+
+    get_model_list = []
+    for model in model_list:
+        get_model_list.append((model, models[model]))
+    return get_model_list
+
+def get_models_pred(model_count):
+    models_grade = sorted(my_predictions_mse.items(), key=lambda x:x[1])
+    model_list = np.array(models_grade[:model_count])[:, 0]
+
+    get_model_pred_list = []
+    for model in model_list:
+        get_model_pred_list.append((model, models_pred[model]))
+    return get_model_pred_list
 
 def get_data(name_, pred, actual):
     global my_predictions_mse
@@ -170,15 +201,11 @@ def compare_data_set():
     from sklearn.linear_model import Ridge, Lasso, ElasticNet
     from sklearn.pipeline import make_pipeline
 
-    global models
+    global x_train, x_valid, y_train, y_valid, models
 
 
     # 비교군이 너무 많아서 가중치는 4개로 줄임.
     weights = [100, 1, 0.1, 0.001]
-    data = load_boston()
-    df_boston = pd.DataFrame(data['data'], columns=data['feature_names'])
-    df_boston['MEDV'] = data['target']
-    x_train, x_valid, y_train, y_valid = train_test_split(df_boston.drop('MEDV', 1), df_boston['MEDV'])
 
     print("\n", "=" * 3, "01. 라쏘 (Lasso) - L1 규제를 활용한 모델", "=" * 3)
     for weight in weights:
@@ -264,7 +291,7 @@ def ensemble_01():
 
     # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
     from sklearn.ensemble import VotingRegressor, VotingClassifier
-    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    global x_train, x_valid, y_train, y_valid, models
 
     print("\n", "=" * 3, "01.", "=" * 3)
     print(models)
@@ -318,7 +345,7 @@ def ensemble_02():
     from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
     # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
-    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    global x_train, x_valid, y_train, y_valid, models
 
     print("\n", "=" * 3, "01.", "=" * 3)
     rfr = RandomForestRegressor(random_state=42)
@@ -384,7 +411,7 @@ def ensemble_03():
     print("\n", "=" * 3, "01.", "=" * 3)
 
     # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
-    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    global x_train, x_valid, y_train, y_valid, models
 
     gbr = GradientBoostingRegressor(random_state=42)
     gbr.fit(x_train, y_train)
@@ -443,7 +470,7 @@ def ensemble_04():
     print("\n", "=" * 5, "04", "=" * 5)
 
     # 데이터셋은 전에 활용했던 데이터 셋을 이용하여 사용
-    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    global x_train, x_valid, y_train, y_valid, models
     print("\n", "=" * 3, "01.", "=" * 3)
     from xgboost import XGBRegressor, XGBClassifier
     xgb = XGBRegressor(random_state=42)
@@ -493,7 +520,7 @@ def ensemble_05():
     """
     print("\n", "=" * 5, "05", "=" * 5)
     from lightgbm import LGBMRegressor, LGBMClassifier
-    x_train, x_valid, y_train, y_valid, models = compare_data_set()
+    global x_train, x_valid, y_train, y_valid, models
     print("\n", "=" * 3, "01.", "=" * 3)
     lgbm = LGBMRegressor(random_state=42)
     lgbm.fit(x_train, y_train)
@@ -553,8 +580,7 @@ def ensemble_06():
     """
     print("\n", "=" * 5, "06", "=" * 5)
     from sklearn.ensemble import StackingRegressor
-    x_train, x_valid, y_train, y_valid, models = compare_data_set()
-    # last_graph('LightGBM Def', lgbm_pred, y_valid)
+    global x_train, x_valid, y_train, y_valid, models
     print("\n", "=" * 3, "01.", "=" * 3)
 
     # 모델에서 MSE 값 낮은 순서대로 5개 추출
@@ -569,13 +595,192 @@ def ensemble_06():
     stack_reg.fit(x_train, y_train)
     stack_pred = stack_reg.predict(x_valid)
     set_data('StackingRegressor', stack_pred, y_valid, stack_reg)
-    last_graph('StackingRegressor ', stack_pred, y_valid)
+    # last_graph('StackingRegressor ', stack_pred, y_valid)
 
 
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
 
 ensemble_06()
+
+
+def ensemble_07():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            07. Weighted Blending
+        Describe
+            각 모델의 예측값에 대하여 weight를 곱하여 최종 output 계산
+            모델에 대한 가중치를 조절하여, 최종 output을 산출합니다.
+            가중치의 합은 1.0이 되도록 합니다.
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "07", "=" * 5)
+    from sklearn.ensemble import StackingRegressor
+    global x_train, x_valid, y_train, y_valid, models
+    print("\n", "=" * 3, "01.", "=" * 3)
+
+    models_pred_data = get_models_pred(5)
+
+    final_prediction = models_pred_data[0][1] * 0.3
+    final_prediction += models_pred_data[1][1] * 0.25
+    final_prediction += models_pred_data[2][1] * 0.2
+    final_prediction += models_pred_data[3][1] * 0.15
+    final_prediction += models_pred_data[4][1] * 0.1
+
+
+    set_data('fianl_prediction 1', final_prediction, y_valid, 'final models')
+
+
+    final_prediction = models_pred_data[0][1] * 0.2
+    final_prediction += models_pred_data[1][1] * 0.2
+    final_prediction += models_pred_data[2][1] * 0.2
+    final_prediction += models_pred_data[3][1] * 0.2
+    final_prediction += models_pred_data[4][1] * 0.2
+    set_data('final_prediction 2', final_prediction, y_valid, 'final models2')
+    # last_graph('final_prediction 2', final_prediction, y_valid)
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+# compare_data_set()
+ensemble_07()
+
+
+def ensemble_08():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            08. Cross Validation
+        Describe
+            Cross Validation이란 모델을 평가하는 하나의 방법
+            K-fold Cross Validation을 많이 활용한다.
+
+            K-fold Cross Validation
+                - K-겹 교차 검증은 모든 데이터가 최소 한 번은 데스트셋으로 쓰이도록 합니다.
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "08", "=" * 5)
+    from sklearn.model_selection import KFold
+    from lightgbm import LGBMRegressor, LGBMClassifier
+
+    global x_train, x_valid, y_train, y_valid, models
+
+    n_splits = 5
+    KFold = KFold(n_splits=n_splits)
+
+    X = np.array(df_boston.drop('MEDV', 1))
+    Y = np.array(df_boston['MEDV'])
+
+    lgbm_fold = LGBMRegressor(random_state=42)
+
+    i = 1
+    total_error = 0
+    for train_index, test_index in KFold.split(X):
+        x_train_fold, x_test_fold = X[train_index], X[test_index]
+        y_train_fold, y_test_fold = Y[train_index], Y[test_index]
+        lgbm_pred_fold = lgbm_fold.fit(x_train_fold, y_train_fold).predict(x_test_fold)
+        error = mean_squared_error(lgbm_pred_fold, y_test_fold)
+        print('Fold ={} score={:.2f}'.format(i, error))
+        total_error += error
+        i += 1
+    print('Average ERror %s' % (total_error / n_splits))
+    print("\n", "=" * 3, "01.", "=" * 3)
+    print("\n", "=" * 3, "02.", "=" * 3)
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+
+ensemble_08()
+
+
+def ensemble_09():
+    """
+        subject
+            Machine_Running
+        topic
+            앙상블 (Ensemble) 예측
+        content
+            09. Hyperparameter 튜닝을 돕는 클래스 2가지
+                RandomizedSearchCV, GridSearchCV
+
+        Describe
+            Cross Validation이란 모델을 평가하는 하나의 방법
+            RandomizedSearchCV
+                - 모든 매개 변수값이 시도되는 것이 아니라 지정된 분포에서 고정 된 수의 매개 변수 설정이 샘플링 된다.
+                - 시도 된 매개 변수 설정의 수는 n_iter에 의해 제공된다.
+            GridSearchCV
+                - 모든 매개 변수 값에 대하여 완전 탐색을 시도합니다.
+                - 최적화할 parameter가 많다면 시간이 매우 오래 걸립니다.
+
+            주요 Hyperparameter
+            random_state: 랜덤 시드 고정 값. 고정해두고 튜닝할 것!
+            n_jobs: CPU 사용 갯수
+            learning_rate:  학습율. 너무 큰 학습율은 성능을 떨어뜨리고, 너무 작은 학습율은 학습이 느리다.
+                            적절한 값을 찾아야함. n_estimators와 같이 튜닝. default=0.1
+            n_estimators: 부스팅 스테이지 수. (랜덤포레스트 트리의 갯수 설정과 비슷한 개념). default=100
+            max_depth: 트리의 깊이. 과대적합 방지용. default=3.
+            colsample_bytree: 샘플 사용 비율 (max_features와 비슷한 개념). 과대적합 방지용. default=1.0
+
+        sub Contents
+            01.
+    """
+    print("\n", "=" * 5, "09", "=" * 5)
+    from sklearn.model_selection import RandomizedSearchCV
+    from sklearn.model_selection import GridSearchCV
+    from lightgbm import LGBMRegressor, LGBMClassifier
+
+    params = {
+        'n_estimators': [200, 500, 1000, 2000],
+        'learning_rate': [0.1, 0.05, 0.01, 0.005],
+        'max_depth': [3, 4, 5, 6, 7],
+        'colsample_bytree': [0.8, 0.9, 1],
+        'subsample': [0.8, 0.9, 1]
+    }
+
+    global x_train, x_valid, y_train, y_valid, models
+
+    # n_iter 총 몇번의 랜덤한 조합값을 만들어내라
+    # cv=3 3개의 cv로 구성한다
+    clf = RandomizedSearchCV(LGBMRegressor(), params, random_state=42, cv=3, n_iter=25, scoring='neg_mean_squared_error')
+    clf.fit(x_train, y_train)
+
+    lgbm_best = LGBMRegressor(random_state=42, n_estimators=2000, max_depth=3, learning_rate=0.005, colsample_bytree=0.9)
+    lgbm_best_pred = lgbm_best.fit(x_train, y_train).predict(x_valid)
+    set_data('RandomizedSearchCV lgbm_best', lgbm_best_pred, y_valid, 'RandomizedSearchCV lgbm_best')
+    # last_graph('lgbm_best_pred', lgbm_best_pred, y_valid)
+
+    print(clf.best_score_)
+    print(clf.best_params_)
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    print("\n", "=" * 3, "02.", "=" * 3)
+
+    # grid_search = GridSearchCV(LGBMRegressor(), params, cv=3, n_jobs=-1, scoring='neg_mean_squared_error')
+    # grid_search_pred = grid_search.fit(x_train, y_train).predict(x_valid)
+    # {'colsample_bytree': 1, 'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 200, 'subsample': 0.8}
+
+    # print(grid_search.best_score_)
+    # print(grid_search.best_params_)
+
+    lgbm_best = LGBMRegressor(random_state=42, subsample=0.8, n_estimators=200, max_depth=5, learning_rate=0.1, colsample_bytree=1)
+    lgbm_best_pred = lgbm_best.fit(x_train, y_train).predict(x_valid)
+    set_data('GridSearchCV lgbm_best', lgbm_best_pred, y_valid, 'GridSearchCV lgbm_best')
+    last_graph('GridSearchCV lgbm_best', lgbm_best_pred, y_valid)
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+ensemble_09()
+
+
 
 def ensemble_temp():
     """
