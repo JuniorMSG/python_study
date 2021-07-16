@@ -3,35 +3,11 @@
         Machine_Running
     topic
         예제로 학습하기
+        포켓몬 데이터셋 ( 분류 분석 )
 
     Describe
-        Boston 부동산 데이터셋 ( EDA & 회귀 분석 )
-        포켓몬 데이터셋 ( 분류 분석 )
-        영화 본 슈프리머시 시나리오 파일 ( 텍스트 마이닝 )
-        트립어드바이저 '제주 호텔' 리뷰 데이터 ( 감성 분류 )
 
-        데이터 분석이 포함하는 내용은 다양하다.
-        분석의 목적, 분야에 따라 여러가지의 기술들이 필요하다.
 
-        BA(Business Analytics)
-        Data Analytics
-        Machine Learning Engineer
-        Data Engineer
-        Data Scientist
-        Research Scientist
-
-        모든 데이터 분석의 공통점
-        1. 목표에 대한 문제 정의
-        2. 문제 해결에 필요한 탐색적 데이터 분석
-        3. 목표에 맞는 분석 기법 적용
-            - 회귀 분석
-            - 딥 러닝
-            - 수학 기법 적용
-            - 데이터 시각화 등등
-
-        탐색적 데이터분석
-        예측 분석
-        분류 분석석
     Contens
         01. 차원축소
         02. 정밀도, 재현률, f1 score
@@ -58,189 +34,13 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 
-
-
-def eda_01():
+def poketmon_01():
     """
         subject
             Machine_Running
         topic
-            data analysis techniques
-        content
-            01. EDA (Exploratory Data Analysis) 탐색적 데이터 분석
-        Describe
-                        지도학습 - 머신러닝, 데이터 분석과 밀접한 관련이 있음.
-            회귀분석, 요인분석, 예측분석, 분류분석에서 주로 사용함.
-
-            회귀분석은 지도학습에 속하는 한가지 방석
-            설명변수와 종속변수간의 인과관계를 찾아냄는 것.
-
-            함수를 데이터에 맞추는 과정 ( 모델 학습 과정)
-            OLS (Ordinary Least Square)많이 사용함.
-            MLE (Maximum Likelihood Estimator)
-
-            OLS (Ordinary Least Square) : 제곱을 가장 작은 상태로 추정하는것 - 오차들의 제곱을 최소화 하는 것
-            그래디언트 디센트 (Gradient Decent)
-
-        sub Contents
-            01.
-    """
-
-    data = load_boston()
-    df_boston = pd.DataFrame(data['data'], columns=data['feature_names'])
-    df_boston['MEDV'] = data['target']
-    print(df_boston.head())
-    print(df_boston.columns)
-    # x_train, x_valid, y_train, y_valid = train_test_split(df_boston.drop('MEDV', 1), df_boston['MEDV'])
-    numerical_columns = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B',
-                         'LSTAT']
-    cols = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT']
-
-    # TOWN : 지역 이름
-    # LON, LAT : 위도, 경도 정보
-    # MEDV : 해당 지역의 집값(중간값)
-    # CRIM : 근방 범죄율
-    # ZN : 주택지 비율
-    # INDUS : 상업적 비즈니스에 활용되지 않는 농지 면적
-    # CHAS : 경계선에 강에 있는지 여부
-    # NOX : 산화 질소 농도
-    # RM : 자택당 평균 방 갯수
-    # AGE : 1940 년 이전에 건설된 비율
-    # DIS : 5 개의 보스턴 고용 센터와의 거리에 다른 가중치 부여
-    # RAD : radial 고속도로와의 접근성 지수
-    # TAX : 10000달러당 재산세
-    # PTRATIO : 지역별 학생-교사 비율
-    # B : 지역의 흑인 지수 (1000(B - 0.63)^2), B는 흑인의 비율.
-    # LSTAT : 빈곤층의 비율
-
-    # shape 확인
-    print(df_boston.shape)
-
-    # 결측치 확인
-    print(df_boston.isnull().sum())
-
-    # 데이터 확인
-    print(df_boston.info())
-
-
-
-    print("\n", "=" * 5, "01", "=" * 5)
-    print("\n", "=" * 3, "01. MEDV 피처 탐색", "=" * 3)
-
-    # 회귀 분석 종속(목표) 변수 탐색
-    # 중간값 확인
-    print(df_boston['MEDV'].describe())
-
-    # df_boston['MEDV'].hist(bins=50)
-    # plt.show()
-
-    # df_boston.boxplot(column=['MEDV'])
-    # plt.show()
-
-    print("\n", "=" * 3, "02.", "=" * 3)
-
-    # 회귀 분석 설명 변수 탐색
-    # 목표 변수의 가격에 영향을 미치는 변수들에 대한 탐색
-
-    fig = plt.figure(figsize=(17, 17))
-    ax = fig.gca()
-    df_boston[numerical_columns].hist(ax=ax)
-
-    # 상관관계 탐색하기 피어슨 상관계수
-    corr = df_boston[cols].corr(method='pearson')
-    print(corr)
-    fig = plt.figure(figsize=(17, 17))
-    ax = fig.gca()
-    sns.set(font_scale=1.5)
-    hm = sns.heatmap(corr.values, annot=True, fmt='.2f', annot_kws={'size':15}, yticklabels=cols, xticklabels=cols, ax=ax)
-    plt.tight_layout()
-    # 상관관계는 1에 가까워지면 양의 상관관계 -1에 가까워지면 음의 상관관계를 가진다.
-
-    # RM 방의 개수
-    plt.plot('RM', 'MEDV', data=df_boston, linestyle='none', marker='o', markersize=5, color='blue', alpha=0.5)
-    plt.title('RM Scatter plot')
-    plt.xlabel('RM')
-    plt.xlabel('MEDV')
-
-    # LSTAT 빈곤층의 비율
-    plt.plot('LSTAT', 'MEDV', data=df_boston, linestyle='none', marker='o', markersize=5, color='blue', alpha=0.5)
-    plt.title('LSTAT Scatter plot')
-    plt.xlabel('LSTAT')
-    plt.xlabel('MEDV')
-
-
-
-    from sklearn.preprocessing import StandardScaler
-
-    # 피처 표준화  feature standardization
-    scaler = StandardScaler()
-    df_boston[cols] = scaler.fit_transform(df_boston[cols])
-    print(df_boston.head())
-
-    # 데이터셋 분리
-    from sklearn.model_selection import train_test_split
-
-    x_train, x_test, y_train, y_test = train_test_split(df_boston[cols], df_boston['MEDV'], test_size=0.2, random_state=30)
-    # plt.show()
-    # 회귀 분석 모델 학습
-    from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import mean_squared_error
-    from math import sqrt
-
-    lr = LinearRegression()
-    lr_model = lr.fit(x_train, y_train)
-    print(lr.coef_)
-
-    plt.rcParams['figure.figsize'] = [12, 16]
-    coefs = lr.coef_.tolist()
-    coefs_series = pd.Series(coefs)
-    x_labels = cols
-    ax = coefs_series.plot.barh()
-    ax.set_title('feature coef graph')
-    ax.set_xlabel('coef')
-    ax.set_ylabel('x_featires')
-    ax.set_yticklabels(x_labels)
-
-    # plt.show()
-    # R2 score - RMSE score 계산
-    print('R2 score : lr_model.score(x_train, y_train) :', lr_model.score(x_train, y_train))
-    print('R2 score : lr_model.score(x_test, y_test)   :', lr_model.score(x_test, y_test))
-
-    mse_train =  mean_squared_error(y_train, lr.predict(x_train))
-    mse_test = mean_squared_error(y_test, lr.predict(x_test))
-    print('MSE : ', 'mse_train :', mse_train)
-    print('MSE : ', 'mse_test :', mse_test)
-    print('RMSE : ', 'rmse_train', sqrt(mse_train))
-    print('RMSE : ', 'rmse_test', sqrt(mse_test))
-
-    print(mean_squared_error(y_test, lr.predict(x_test)))
-
-    # 피처 유의성 검정
-    import statsmodels.api as sm
-    x_train = sm.add_constant(x_train)
-    model = sm.OLS(y_train, x_train).fit()
-    print(model.summary())
-    from statsmodels.stats.outliers_influence import variance_inflation_factor
-
-    # 다중 공선성? vir 계수
-    # 10이상일 경우 다른 feature들과 상관관계가 높다.
-    vif = pd.DataFrame()
-    vif['VIF Facotr'] = [variance_inflation_factor(x_train.values, i) for i in range(x_train.shape[1])]
-    vif['feature'] = x_train.columns
-    print(vif)
-
-
-print("\n", "=" * 3, "03.", "=" * 3)
-
-# eda_01()
-
-
-def eda_02():
-    """
-        subject
-            Machine_Running
-        topic
-            data analysis techniques
+            예제로 학습하기
+            포켓몬 데이터셋 ( 분류 분석 )
         content
             02. 분류분석 - 포캣몬 데이터셋
         Describe
@@ -445,43 +245,164 @@ def eda_02():
     # 차원수가 많을경우엔 차원 축소를 한후 사용하거나 다른 알고리즘을 사용한다.
     # 군집 분류 결과 해석과 시각화
 
-    #
-    """
-        군집 분류 분석의 결과 해석
-            차원 축소를 이용한 결과 해석
-            엘보우 메서드 (elbow method)
-            실루엣 계수 평가 등등..
-    """
 
-
-eda_02()
-
-def poketmon_04():
+def poketmon_03():
     """
         subject
             Machine_Running
         topic
             data analysis techniques
         content
-            poketmon_k_means
+            비지도 학습 기반 군집 분류 분석
+
+            K-means를 활용한 군집 분류
+                주어진 데이터를 k개의 클러스터로 묶는 방식, 거리 차이의 분산을 최소화 하는 방식으로 동작
+                Expectation / Maximization
+                차원수가 많을경우엔 차원 축소를 한후 사용하거나 다른 알고리즘을 사용한다.
+
+            군집 분류 분석의 결과 해석
+                차원 축소를 이용한 결과 해석
+                엘보우 메서드 (elbow method)
+                실루엣 계수 평가 등등..
         Describe
 
         sub Contents
             01.
     """
-    print("\n", "=" * 5, "poketmon_k_means", "=" * 5)
+    print("\n", "=" * 5, "03", "=" * 5)
+    from sklearn.cluster import KMeans
+    df = pd.read_csv("./data_file/pokemon.csv")
+
+    # 전처리
+    df['Legendary'] = df['Legendary'].astype(int)
+    df['Generation'] = df['Generation'].astype(int)
+    prog_df = df[['Type 1', 'Type 2', 'Total', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed', 'Generation',
+                  'Legendary']]
+
+    # one-hot encoding
+    encoded_df = pd.get_dummies(prog_df['Type 1'])
+    print(encoded_df.head())
+
+    def make_list(x1, x2):
+        type_list = []
+        type_list.append(x1)
+        if x2 is not np.nan:
+            type_list.append(x2)
+        return type_list
+
+    prog_df['Type'] = prog_df.apply(lambda x: make_list(x['Type 1'], x['Type 2']), axis=1)
+    print(prog_df.head())
+
+    del prog_df['Type 1']
+    del prog_df['Type 2']
+    from sklearn.preprocessing import MultiLabelBinarizer
+
+    # 멀티 레이블 바이너리화 ( 2가지의 속성을 원핫 인코딩 한 값이라고 보면됨.)
+    mlb = MultiLabelBinarizer()
+    prog_df = prog_df.join(pd.DataFrame(mlb.fit_transform(prog_df.pop('Type')), columns=mlb.classes_))
+    print(prog_df.head())
+
+    prog_df = pd.get_dummies(prog_df, columns=['Generation'])
+    print(prog_df.head())
     print("\n", "=" * 3, "01.", "=" * 3)
-    print("\n", "=" * 3, "02.", "=" * 3)
+
+    x = prog_df[['Attack', 'Defense']]
+    k_list = []
+    cost_list = []
+    # 2차원 군집 분석
+    for k in range(1, 6):
+        kmeans = KMeans(n_clusters=k).fit(x)
+        inertia = kmeans.inertia_
+        print('k:', k, '| cost:', inertia)
+        k_list.append(k)
+        cost_list.append(inertia)
+
+    plt.plot(k_list, cost_list)
+    plt.show()
+    kmeans = KMeans(n_clusters=4).fit(x)
+    cluster_num = kmeans.predict(x)
+    cluster = pd.Series(cluster_num)
+    prog_df['cluster_num'] = cluster.values
+    print(prog_df.head(), prog_df['cluster_num'].value_counts())
+
+    plt.scatter(prog_df[prog_df['cluster_num'] == 0]['Attack'],
+                prog_df[prog_df['cluster_num'] == 0]['Defense'],
+                s=50, c='red', label='Poketmon Group 1'
+    )
+    plt.scatter(prog_df[prog_df['cluster_num'] == 1]['Attack'],
+                prog_df[prog_df['cluster_num'] == 1]['Defense'],
+                s=50, c='blue', label='Poketmon Group 3'
+    )
+    plt.scatter(prog_df[prog_df['cluster_num'] == 2]['Attack'],
+                prog_df[prog_df['cluster_num'] == 2]['Defense'],
+                s=50, c='green', label='Poketmon Group 3'
+    )
+    plt.scatter(prog_df[prog_df['cluster_num'] == 3]['Attack'],
+                prog_df[prog_df['cluster_num'] == 3]['Defense'],
+                s=50, c='yellow', label='Poketmon Group 3'
+    )
+    plt.title('poketmon_cluster')
+    plt.xlabel('Attack')
+    plt.ylabel('Defense')
+    plt.legend()
+    plt.show()
+
+
+
+
+    print("\n", "=" * 3, "02. 다차원 군집 분석", "=" * 3)
+
+    x = prog_df[['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed', 'Legendary']]
+    k_list = []
+    cost_list = []
+
+    # 2차원 군집 분석
+    for k in range(1, 15):
+        kmeans = KMeans(n_clusters=k).fit(x)
+        inertia = kmeans.inertia_
+        print('k:', k, '| cost:', inertia)
+        k_list.append(k)
+        cost_list.append(inertia)
+
+    plt.plot(k_list, cost_list)
+    plt.show()
+    kmeans = KMeans(n_clusters=6).fit(x)
+    cluster_num = kmeans.predict(x)
+    cluster = pd.Series(cluster_num)
+    prog_df['cluster_num'] = cluster.values
+    print(prog_df.head(), prog_df['cluster_num'].value_counts())
+
+    fig, axes = plt.subplots(2, 2, sharey=False, tight_layout=True, figsize=(15, 6), num='view')
+
+    ax_temp = axes[0, 0]
+    ax_temp.set_title('HP')
+    sns.boxplot(x=cluster_num, y='HP', data=prog_df, ax=ax_temp)
+
+    ax_temp = axes[0, 1]
+    ax_temp.set_title('Attack')
+    sns.boxplot(x=cluster_num, y='Attack', data=prog_df, ax=ax_temp)
+
+    ax_temp = axes[1, 0]
+    ax_temp.set_title('Defense')
+    sns.boxplot(x=cluster_num, y='Defense', data=prog_df, ax=ax_temp)
+
+    ax_temp = axes[1, 1]
+    ax_temp.set_title('Speed')
+    sns.boxplot(x=cluster_num, y='Speed', data=prog_df, ax=ax_temp)
+
+    plt.show()
+
     print("\n", "=" * 3, "03.", "=" * 3)
 
-# eda_temp()
+poketmon_03()
 
-def eda_temp():
+def poketmon_temp():
     """
         subject
             Machine_Running
         topic
-            data analysis techniques
+            예제로 학습하기
+            포켓몬 데이터셋 ( 분류 분석 )
         content
             temp
         Describe
