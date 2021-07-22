@@ -568,6 +568,7 @@ def marketing_03():
     # 데이터 확인
     print(df.shape)
     print(df.tail())
+
     # 결측값 측정
     print(df.info())
     print(df.isnull().sum())
@@ -575,29 +576,356 @@ def marketing_03():
     # 기술통계 확인 : df.describe()
     print(df.describe())
 
-    # 분석에 필요한 컬럼만 선택
-    # df = df[['userid', 'version', 'sum_gamerounds', 'retention_1', 'retention_7']]
-
     # 변수간의 correlation 확인 df.corr() 시각화
-    corr = df.corr()
-    print(corr)
+    def open_data_graph():
+        corr = df.corr()
+        print(corr)
 
-    ax_temp = axes[0, 0]
-    ax_temp.set_title('HeatMap')
-    sns.heatmap(corr, annot=True, ax=ax_temp)
+        ax_temp = axes[0, 0]
+        ax_temp.set_title('HeatMap')
+        sns.heatmap(corr, annot=True, ax=ax_temp)
 
-    # ax_temp = axes[0, 1]
-    # ax_temp.set_title('sum_gamerounds box plot')
-    # sns.boxenplot(data=df, y='', ax=ax_temp)
+        # pairplot 시각화 생성
+        print(df.columns)
 
-    plt.show()
+        ax_temp = axes[0, 1]
+        ax_temp.set_title('Age dist plot')
+        sns.distplot(df['Age'], ax=ax_temp)
 
+        ax_temp = axes[0, 2]
+        ax_temp.set_title('Annual Income (k$) dist plot')
+        sns.distplot(df['Age'], ax=ax_temp)
+
+        ax_temp = axes[0, 3]
+        ax_temp.set_title('Spending Score (1-100) dist plot')
+        sns.distplot(df['Spending Score (1-100)'], ax=ax_temp)
+
+        ax_temp = axes[1, 0]
+        ax_temp.set_title('Genter Count plot')
+        sns.countplot(df['Gender'], ax=ax_temp)
+
+        ax_temp = axes[1, 1]
+        ax_temp.set_title('boxplot plot')
+        sns.boxplot(data=df, x='Gender', y='Age', hue='Gender', palette=['m', 'g'], ax=ax_temp)
+
+
+        # 서브플롯에 안들어가는 것들
+        sns.pairplot(df[['CustomerID', 'Gender', 'Age', 'Annual Income (k$)', 'Spending Score (1-100)']])
+        sns.pairplot(df[['CustomerID', 'Gender', 'Age', 'Annual Income (k$)', 'Spending Score (1-100)']], hue='Gender')
+        # lmplot은 regplot을 서브 플롯으로 하는 플롯입니다
+        sns.lmplot(data=df, x='Age', y='Annual Income (k$)', hue='Gender', fit_reg=False)
+        sns.lmplot(data=df, x='Spending Score (1-100)', y='Annual Income (k$)', hue='Gender', fit_reg=False)
+
+        plt.show()
+
+    # open_data_graph()
 
 
     print("\n", "=" * 5, "03", "=" * 5)
+
     print("\n", "=" * 3, "01.", "=" * 3)
+    """
+        고객 세그먼트 클러스터링
+        K-means를 사용한 클러스터링
+            K-means는 가장 빠르고 단순한 클러스터링 방법 중 한 가지 입니다.
+            scikit-learn의 cluster 서브패키지 KMeans 클래스를 사용합니다. https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
+        
+            n_clusters: 군집의 갯수 (default=8)
+            init: 초기화 방법. "random"이면 무작위, "k-means++"이면 K-평균++ 방법.(default=k-means++)
+            n_init: centroid seed 시도 횟수. 무작위 중심위치 목록 중 가장 좋은 값을 선택한다.(default=10)
+            max_iter: 최대 반복 횟수.(default=300)
+            random_state: 시드값.(default=None)     
+        
+        2가지 변수가 아닌 여러가지 변수를 활용한후 차원 축소를 통해서 군집화 한다.
+    """
+    ### Age & spending Score 두 가지 변수를 사용한 클러스터링
+    # ['CustomerID', 'Gender', 'Age', 'Annual Income (k$)', 'Spending Score (1-100)']
+
+
+    from sklearn.cluster import KMeans
+    # X1에 'Age' , 'Spending Score (1-100)'의 값을 넣어줍니다.
+    x1 = df[['Age', 'Spending Score (1-100)']].values
+    print(x1.shape)
+
+    # inertia 라는 빈 리스트를 만들어줍니다.
+    inertia = []
+
+    # 군집수 n을 1에서 20까지 돌아가며 X1에 대해 k-means++ 알고리즘을 적용하여 inertia를 리스트에 저장합니다.
+    for n in range(1, 20):
+        algorithm = (KMeans(n_clusters=n, random_state=30))
+        algorithm.fit(x1)
+        inertia.append(algorithm.inertia_)
+
+    """
+        Inertia value를 이용한 적정 k 선택
+        관성(Inertia)에 기반하여 n 개수를 선택합니다.
+        관성(Inertia) : 각 중심점(centroid)에서 군집 내 데이터간의 거리를 합산한 것으로 군집의 응집도를 나타냅니다. 
+        이 값이 작을수록 응집도 높은 군집화 입니다. 즉, 작을 수록 좋은 값 입니다.
+        https://scikit-learn.org/stable/modules/clustering.html
+    """
+
+
+    print(inertia)
+    axes[0, 0].plot(np.arange(1, 20), inertia, 'o')
+    axes[0, 0].plot(np.arange(1, 20), inertia, '-', alpha=0.8)
+    axes[0, 0].set_title('KMeans small is best')
+    axes[0, 0].set_xlabel('Number of Clusters')
+    axes[0,0].set_ylabel('Inertia')
+    plt.show()
+
+    # 급격하게 변하는 지점이 군집으로 잡기에 좋다.
+    # 군집수를 4로 지정하여 시각화 해봅니다.
+    algorithm = (KMeans(n_clusters=4, init='k-means++', n_init=10, max_iter=300,
+                        tol=0.0001, random_state=111, algorithm='elkan'))
+    algorithm.fit(x1)
+    labels1 = algorithm.labels_
+    centroids1 = algorithm.cluster_centers_
+
+    h = 0.02
+    x_min, x_max = x1[:, 0].min() - 1, x1[:, 0].max() + 1
+    y_min, y_max = x1[:, 1].min() - 1, x1[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = algorithm.predict(np.c_[xx.ravel(), yy.ravel()])
+
+    plt.figure(1, figsize=(15, 7))
+    plt.clf()
+    Z = Z.reshape(xx.shape)
+    plt.imshow(Z, interpolation='nearest',
+               extent=(xx.min(), xx.max(), yy.min(), yy.max()),
+               cmap=plt.cm.Pastel2, aspect='auto', origin='lower')
+
+    plt.scatter(x='Age', y='Spending Score (1-100)', data=df, c=labels1,
+                s=200)
+    plt.scatter(x=centroids1[:, 0], y=centroids1[:, 1], s=300, c='red', alpha=0.5)
+    plt.ylabel('Spending Score (1-100)'), plt.xlabel('Age')
+    plt.show()
+
+    """
+        연령-소비점수를 활용한 군집 4개는 아래와 같이 명명할 수 있습니다.
+
+        저연령-고소비 군
+        저연령-중소비 군
+        고연령-중소비 군
+        저소비 군
+        군집별 활용 전략 예시
+            이 수퍼마켓 mall의 경우 소비점수가 높은 고객들은 모두 40세 이하의 젊은 고객입니다.
+            소비점수가 높은 고객들은 연령대가 비슷한 만큼 비슷한 구매패턴과 취향을 가질 가능성이 높습니다.
+            해당 군집의 소비자 특성을 더 분석해본 뒤 해당 군집의 소비자 대상 VIP 전략을 수립해봅니다.
+            소비점수가 중간정도인 고객들에게는 연령에 따라 두 개 집단으로 나눠서 접근해봅니다.
+            소비점수가 낮은 고객군은 연령대별로 중소비점수 군집에 편입될 수 있도록 접근해봅니다.
+    """
+
     print("\n", "=" * 3, "02.", "=" * 3)
+    # X1에 'Annual Income (k$)' , 'Spending Score (1-100)' 의 값을 넣어줍니다.
+    X2 = df[['Annual Income (k$)', 'Spending Score (1-100)']].values
+
+    # inertia 라는 빈 리스트를 만들어줍니다.
+    inertia = []
+
+    # 군집수 n을 1에서 11까지 돌아가며 X1에 대해 k-means++ 알고리즘을 적용하여 inertia를 리스트에 저장합니다.
+    for n in range(1, 11):
+        algorithm = (KMeans(n_clusters=n))
+        algorithm.fit(X2)
+        inertia.append(algorithm.inertia_)
+
+    plt.figure(1, figsize=(16, 5))
+    plt.plot(np.arange(1, 11), inertia, 'o')
+    plt.plot(np.arange(1, 11), inertia, '-', alpha=0.8)
+    plt.xlabel('Number of Clusters'), plt.ylabel('Inertia')
+    plt.show()
+
+    # 군집수를 5로 지정하여 시각화 해봅니다.
+    algorithm = (KMeans(n_clusters=5, init='k-means++', n_init=10, max_iter=300,
+                        tol=0.0001, random_state=111, algorithm='elkan'))
+    algorithm.fit(X2)
+    labels2 = algorithm.labels_
+    centroids2 = algorithm.cluster_centers_
+
+    h = 0.02
+    x_min, x_max = X2[:, 0].min() - 1, X2[:, 0].max() + 1
+    y_min, y_max = X2[:, 1].min() - 1, X2[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z2 = algorithm.predict(np.c_[xx.ravel(), yy.ravel()])
+
+    plt.figure(1, figsize=(15, 7))
+    plt.clf()
+    Z2 = Z2.reshape(xx.shape)
+    plt.imshow(Z2, interpolation='nearest',
+               extent=(xx.min(), xx.max(), yy.min(), yy.max()),
+               cmap=plt.cm.Pastel2, aspect='auto', origin='lower')
+
+    plt.scatter(x='Annual Income (k$)', y='Spending Score (1-100)', data=df, c=labels2, s=200)
+    plt.scatter(x=centroids2[:, 0], y=centroids2[:, 1], s=300, c='red', alpha=0.5)
+    plt.ylabel('Spending Score (1-100)'), plt.xlabel('Annual Income (k$)')
+    plt.show()
+
     print("\n", "=" * 3, "03.", "=" * 3)
+
+    """
+        분석 모델링 / 고객 세그먼트 해석.
+        실루엣 스코어를 사용한 k 선택
+        가장 좋은 값은 1이고 최악의 값은 -1
+       
+            Silhouette Coefficient는 각 샘플의 클러스터 내부 거리의 평균 (a)와 인접 클러스터와의 거리 평균 (b)을 사용하여 계산합니다.
+            한 샘플의 Silhouette Coefficient는 (b - a) / max(a, b)입니다.
+            
+            0 근처의 값은 클러스터가 오버랩되었다는 것을 의미합니다
+            음수 값은 샘플이 잘못된 클러스터에 배정되었다는 것을 의미합니다. 다른 클러스터가 더 유사한 군집이라는 의미입니다.
+            https://scikit-learn.org/stable/modules/generated/sklearn.metrics.silhouette_score.html
+    """
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_samples, silhouette_score
+    import matplotlib.cm as cm
+
+    # 클러스터의 갯수 리스트를 만들어줍니다.
+    range_n_clusters = [6]
+
+    # 사용할 컬럼 값을 지정해줍니다.
+    X = df[['Age', 'Annual Income (k$)', 'Spending Score (1-100)']].values
+
+    for n_clusters in range_n_clusters:
+        # 1 X 2 의 서브플롯을 만듭니다.
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        fig.set_size_inches(18, 7)
+
+        # 첫 번째 서브플롯은 실루엣 플롯입니다.
+        # silhouette coefficient는 -1에서 1 사이의 값을 가집니다.
+        # 하지만 시각화에서는 -0.1에서 1사이로 지정해줍니다.
+        ax1.set_xlim([-0.1, 1])
+
+        # clusterer를 n_clusters 값으로 초기화 해줍니다.
+        # 재현성을 위해 random seed를 10으로 지정 합니다.
+        clusterer = KMeans(n_clusters=n_clusters, random_state=10)
+        cluster_labels = clusterer.fit_predict(X)
+
+        # silhouette_score는 모든 샘플에 대한 평균값을 제공합니다.
+        # 실루엣 스코어는 형성된 군집에 대해 밀도(density)와 분리(seperation)에 대해 견해를 제공합니다.
+        silhouette_avg = silhouette_score(X, cluster_labels)
+        print("For n_clusters =", n_clusters,
+              "The average silhouette_score is :", silhouette_avg)
+
+        # 각 샘플에 대한 실루엣 스코어를 계산합니다.
+        sample_silhouette_values = silhouette_samples(X, cluster_labels)
+
+        y_lower = 10
+        for i in range(n_clusters):
+            # 클러스터 i에 속한 샘플들의 실루엣 스코어를 취합하여 정렬합니다.
+            ith_cluster_silhouette_values = \
+                sample_silhouette_values[cluster_labels == i]
+
+            ith_cluster_silhouette_values.sort()
+
+            size_cluster_i = ith_cluster_silhouette_values.shape[0]
+            y_upper = y_lower + size_cluster_i
+
+            color = cm.nipy_spectral(float(i) / n_clusters)
+            ax1.fill_betweenx(np.arange(y_lower, y_upper),
+                              0, ith_cluster_silhouette_values,
+                              facecolor=color, edgecolor=color, alpha=0.7)
+
+            # 각 클러스터의 이름을 달아서 실루엣 플롯의 Label을 지정해줍니다.
+            ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+            # 다음 플롯을 위한 새로운 y_lower를 계산합니다.
+            y_lower = y_upper + 10  # 10 for the 0 samples
+
+        ax1.set_title("The silhouette plot for the various clusters.")
+        ax1.set_xlabel("The silhouette coefficient values")
+        ax1.set_ylabel("Cluster label")
+
+        # 모든 값에 대한 실루엣 스코어의 평균을 수직선으로 그려줍니다.
+        ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+
+        ax1.set_yticks([])  # yaxis labels / ticks 를 지워줍니다.
+        ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+        # 두 번째 플롯이 실제 클러스터가 어떻게 형성되었는지 시각화 합니다.
+        colors = cm.nipy_spectral(cluster_labels.astype(float) / n_clusters)
+        ax2.scatter(X[:, 0], X[:, 1], marker='.', s=30, lw=0, alpha=0.7,
+                    c=colors, edgecolor='k')
+
+        # 클러스터의 이름을 지어줍니다.
+        centers = clusterer.cluster_centers_
+        # 클러스터의 중앙에 하얀 동그라미를 그려줍니다.
+        ax2.scatter(centers[:, 0], centers[:, 1], marker='o',
+                    c="white", alpha=1, s=200, edgecolor='k')
+
+        for i, c in enumerate(centers):
+            ax2.scatter(c[0], c[1], marker='$%d$' % i, alpha=1,
+                        s=50, edgecolor='k')
+
+        ax2.set_title("The visualization of the clustered data.")
+        ax2.set_xlabel("Feature space for the 1st feature")
+        ax2.set_ylabel("Feature space for the 2nd feature")
+
+        plt.suptitle(("Silhouette analysis for KMeans clustering on sample data "
+                      "with n_clusters = %d" % n_clusters),
+                     fontsize=14, fontweight='bold')
+
+    plt.show()
+
+    print(n_clusters, cluster_labels, cluster_labels.shape)
+    df['cluster'] = cluster_labels
+    print(df.groupby('cluster')['Age'].mean())
+    sns.boxplot(x='cluster', y="Age", hue="Gender", palette=["c", "m"], data=df)
+    """
+        boxplot은 중앙값, 표준 편차 등, 분포의 간략한 특성을 보여줍니다.
+        각 카테고리 값에 따른 분포의 실제 데이터와 형상을 보고 싶다면 violinplot, stripplot, swarmplot 등으로 시각화 해봅니다.
+        violinplot은 세로 방향으로 커널 밀도 히스토그램을 그려줍니다. 양쪽이 왼쪽, 오른쪽 대칭이 되도록 하여 바이올린처럼 보입니다.
+        violinplot: http://seaborn.pydata.org/generated/seaborn.violinplot.html
+        swarmplot은 stripplot과 유사하며 데이터를 나타내는 점이 겹치지 않도록 옆으로 이동해서 그려줍니다.
+        swarmplot: http://seaborn.pydata.org/generated/seaborn.swarmplot.html
+    """
+
+    df['cluster'] = cluster_labels
+    print(df.tail())
+
+    # 각 그룹의 특성을 확인하기
+    print(df.groupby('cluster')['Age'].mean())
+
+    fig, axes = plt.subplots(2, 2, sharey=False, tight_layout=True, figsize=(15, 6), num='mobile game')
+    # violinplot
+    sns.violinplot(x='cluster', y='Annual Income (k$)', data=df, inner=None, ax=axes[0, 0])
+    sns.swarmplot(x='cluster', y="Annual Income (k$)", data=df, ax=axes[0, 0], color='white', edgecolor='gray')
+    sns.boxplot(x='cluster', y="Annual Income (k$)", data=df, ax=axes[0, 1])
+
+    sns.violinplot(x='cluster', y='Spending Score (1-100)', data=df, inner=None, ax=axes[1, 0])
+    sns.swarmplot(x='cluster', y="Spending Score (1-100)", data=df, ax=axes[1, 0], color='white', edgecolor='gray')
+
+    sns.violinplot(x='cluster', y='Age', data=df, inner=None, ax=axes[1, 1])
+    sns.swarmplot(x='cluster', y="Age", data=df, ax=axes[1, 1], color='white', edgecolor='gray')
+    plt.show()
+
+    # 3개의 시각화를 한 화면에 배치합니다.
+    figure, ((ax1, ax2, ax3)) = plt.subplots(nrows=1, ncols=3)
+
+    # 시각화의 사이즈를 설정해줍니다.
+    figure.set_size_inches(20, 6)
+    # 클러스터별로 swarmplot을 시각화해봅니다.
+    ax1 = sns.violinplot(x="cluster", y='Annual Income (k$)', data=df, inner=None, ax=ax1)
+    ax1 = sns.swarmplot(x="cluster", y='Annual Income (k$)', data=df,
+                        color="white", edgecolor="gray", ax=ax1)
+
+    ax2 = sns.violinplot(x="cluster", y='Spending Score (1-100)', data=df, inner=None, ax=ax2)
+    ax2 = sns.swarmplot(x="cluster", y='Spending Score (1-100)', data=df,
+                        color="white", edgecolor="gray", ax=ax2)
+
+    ax3 = sns.violinplot(x="cluster", y='Age', data=df, inner=None, ax=ax3)
+    ax3 = sns.swarmplot(x="cluster", y='Age', data=df,
+                        color="white", edgecolor="gray", ax=ax3, hue="Gender")
+    plt.show()
+    """
+       
+        추가 분석을 해본다면
+        "Gender" 변수 활용
+        K-means는 기본적으로 numerical variable을 사용하는 알고리즘입니다. 유클리디안 거리를 계산해야하기 때문입니다.
+        Gender 변수를 one-hot-encoding하여 숫자로 바꿔준 뒤 변수로 추가하여 활용해봅니다.
+        
+        카테고리 변수가 대부분인 경우의 군집화
+        k-modes 알고리즘을 사용합니다.
+        https://pypi.org/project/kmodes/
+        
+    """
 
 
 marketing_03()
