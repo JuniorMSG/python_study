@@ -928,7 +928,553 @@ def marketing_03():
     """
 
 
-marketing_03()
+# marketing_03()
+
+
+def marketing_04():
+    """
+        subject
+            Machine_Running
+        topic
+            ex4. marketing_data
+        content
+            04. Revenue
+        Describe
+            고객 해지율을 낮추고 CLV를 높여보자
+        sub Contents
+            01. 분석할 데이터 파악 ( 통신사 고객 데이터 EDA )
+
+            해지 여부
+                Churn - 고객이 지난 1개월 동안 해지했는지 여부 (Yes or No)
+
+            Demographic 정보
+                customerID - 고객들에게 배정된 유니크한 고객 번호 입니다.
+                gender - 고객의 성별 입니다(male or a female).
+                Age - 고객의 나이 입니다.
+                SeniorCitizen - 고객이 senior 시민인지 여부(1, 0).
+                Partner - 고객이 파트너가 있는지 여부(Yes, No).
+                Dependents - 고객이 dependents가 있는지 여부(Yes, No).
+
+            고객의 계정 정보
+                tenure - 고객이 자사 서비스를 사용한 개월 수.
+                Contract - 고객의 계약 기간 (Month-to-month, One year, Two year)
+                PaperlessBilling - 고객이 paperless billing를 사용하는지 여부 (Yes, No)
+                PaymentMethod - 고객의 지불 방법 (Electronic check, Mailed check, Bank transfer (automatic), Credit card (automatic))
+                MonthlyCharges - 고객에게 매월 청구되는 금액
+                TotalCharges - 고객에게 총 청구된 금액
+
+            고객이 가입한 서비스
+                PhoneService - 고객이 전화 서비스를 사용하는지 여부(Yes, No).
+                MultipleLines - 고객이 multiple line을 사용하는지 여부(Yes, No, No phone service).
+                InternetService - 고객의 인터넷 서비스 사업자 (DSL, Fiber optic, No).
+                OnlineSecurity - 고객이 online security 서비스를 사용하는지 여부 (Yes, No, No internet service)
+                OnlineBackup - 고객이 online backup을 사용하는지 여부 (Yes, No, No internet service)
+                DeviceProtection - 고객이 device protection에 가입했는지 여부 (Yes, No, No internet service)
+                TechSupport 고객이 tech support를 받고있는지 여부 (Yes, No, No internet service)
+                StreamingTV - 고객이 streaming TV 서비스를 사용하는지 여부 (Yes, No, No internet service)
+                StreamingMovies - 고객이 streaming movies 서비스를 사용하는지 여부 (Yes, No, No internet service)
+
+            문제 정의
+                분석의 목적
+                통신사의 고객 데이터에서 CLV를 계산합니다.
+                통신사 고객의 churn 해지를 예측합니다.
+    """
+
+    print("\n", "=" * 5, "04", "=" * 5)
+    df = pd.read_csv("./data_file/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+
+
+    # 데이터 확인
+    print(df.shape)
+    print(df.tail())
+
+    # 결측값 측정
+    print(df.info())
+    # object - Yes Or No ( Category Data )
+    # TotalCharges      7043 non-null   object
+    print(df.isnull().sum())
+
+    # df['TotalCharges'] = pd.to_numeric(df['TotalCharges'])
+    print(df[df['TotalCharges'] == ' '])
+    df['TotalCharges'] = df['TotalCharges'].replace(' ', np.nan)
+    print(df[df['tenure'] == 0])
+    df = df[df['TotalCharges'].notnull()]
+
+    # float으로 변환
+    df['TotalCharges'] = df['TotalCharges'].astype(float)
+    print(df.info(0))
+
+    # 기술통계 확인 : df.describe()
+    print(df.describe())
+
+
+    # 변수간의 correlation 확인 df.corr() 시각화
+    fig, axes = plt.subplots(2, 4, sharey=False, tight_layout=True, figsize=(15, 6), num='mobile game')
+
+    corr = df.corr()
+    print(corr)
+    # annot=True 숫자 표시해줌
+
+    ax_temp = axes[0, 0]
+    ax_temp.set_title('HeatMap')
+    sns.heatmap(corr, annot=True, ax=ax_temp)
+
+    # 해지한 고객수 ( Count Flot )
+    sns.countplot(y='Churn', data=df, ax=axes[0, 1])
+
+    # 변수간의 pairplot
+    """
+        Pairplot으로 눈으로 볼 수 있는 관계는 이 정도 입니다.
+        tenure가 낮은 경우 churn이 많습니다. 즉, 최근 고객들이 더 많이 해지합니다.
+        어느정도 이상의 tenure이 되면 충성고객이 되어 churn하지 않는 것 같습니다.
+        MonthlyCharges가 높은 경우의 churn이 많습니다.
+        tenure과 MonthlyCharges가 아마도 주요한 변수인 것 같습니다.
+        scatter plot을 봐도 어느 정도 경계선이 보입니다.
+        pairplot으로 볼 수 있는 관계가 많지 않습니다.
+        numeric variable이 많지 않기 때문입니다.
+        categorical variable을 처리해줍니다.
+    """
+    sns.pairplot(data=df, hue='Churn', markers='+', palette='husl')
+
+    # 카테고리 변수의 카테고리가 어떻게 구성되어 있는지 확인 합니다.
+    print(df['gender'].value_counts())
+    print("=================================")
+    print(df['Partner'].value_counts())
+    print("=================================")
+    print(df['Dependents'].value_counts())
+    print("=================================")
+    print(df['PhoneService'].value_counts())
+    print("=================================")
+    print(df['MultipleLines'].value_counts())
+    print("=================================")
+    print(df['InternetService'].value_counts())
+    print("=================================")
+    print(df['OnlineSecurity'].value_counts())
+    print("=================================")
+    print(df['OnlineBackup'].value_counts())
+    print("=================================")
+    print(df['DeviceProtection'].value_counts())
+    print("=================================")
+    print(df['TechSupport'].value_counts())
+    print("=================================")
+    print(df['StreamingTV'].value_counts())
+    print("=================================")
+    print(df['StreamingMovies'].value_counts())
+    print("=================================")
+    print(df['Contract'].value_counts())
+    print("=================================")
+    print(df['PaperlessBilling'].value_counts())
+    print("=================================")
+    print(df['PaymentMethod'].value_counts())
+    print("=================================")
+    print(df['Churn'].value_counts())
+
+    # 다음 컬럼들에 대해 'No internet service'를 'No'로 변환해줍니다.
+    replace_cols = ['MultipleLines', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV',
+                    'StreamingMovies']
+    for i in replace_cols:
+        df[i] = df[i].replace({'No internet service': 'No'})
+
+
+
+    def barplot_percentages(feature, axes, orient='v', axis_name="percentage of customers"):
+        ratios = pd.DataFrame()
+        g = df.groupby(feature)["Churn"].value_counts().to_frame()
+        g = g.rename({"Churn": axis_name}, axis=1).reset_index()
+        g[axis_name] = g[axis_name] / len(df)
+        if orient == 'v':
+            sns.barplot(x=feature, y=axis_name, hue='Churn', data=g, orient=orient, ax=axes)
+            axes.set_yticklabels(['{:,.0%}'.format(y) for y in axes.get_yticks()])
+        else:
+            sns.barplot(x=axis_name, y=feature, hue='Churn', data=g, orient=orient , ax=axes)
+            axes.set_xticklabels(['{:,.0%}'.format(x) for x in axes.get_xticks()])
+        axes.plot()
+
+    # https://www.kaggle.com/jsaguiar/exploratory-analysis-with-seaborn
+
+    # "SeniorCitizen"
+    # SeniotCitizen은 전체 고객의 16% 정도에 불과하지만 churn 비율은 훨씬 높습니다. (42% vs 23%)
+    fig, axes = plt.subplots(2, 4, sharey=False, tight_layout=True, figsize=(15, 6), num='data bar plot')
+    barplot_percentages('SeniorCitizen', axes[0, 0])
+
+    # 'Dependents'
+    # Dependent가 없는 경우 churn을 더 많이 합니다.
+    barplot_percentages('Dependents', axes[0, 1])
+
+    # 'Partner'
+    # Partner가 없는 경우 churn을 더 많이 합니다
+    barplot_percentages('Partner', axes[0, 2])
+
+    # "MultipleLines"
+    # phone service를 사용하지 않는 고객의 비율은 적습니다.
+    # MultipleLines를 사용중인 고객의 churn 비율이 아주 약간 높습니다.
+    barplot_percentages('MultipleLines', axes[0, 3])
+
+    # "InternetService"
+    # 인터넷서비스가 없는 경우의 churn 비율은 매우 낮습니다.
+    # Fiber opptic을 사용중인 고객이 DSL 사용중인 고객들보다 churn 비율이 높습니다.
+    barplot_percentages('InternetService', axes[1, 0])
+
+    # 6개의 부가 서비스관련 시각화 해봅니다.
+    # "OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport" 부가서비스 사용자는 churn 하는 경우가 적습니다.
+    # 스트리밍 서비스 이용 고객 중 churn이 많은 것으로 보입니다. ("StreamingTV", "StreamingMovies")
+    cols = ["OnlineSecurity", "OnlineBackup", "DeviceProtection"]
+    df1 = pd.melt(df[df["InternetService"] != "No"][cols]).rename({'value': 'Has service'}, axis=1)
+    sns.countplot(data=df1, x='variable', hue='Has service', ax=axes[1, 1])
+    axes[1, 1].set(xlabel='Additional service', ylabel='Num of customers')
+
+    cols = ["TechSupport", "StreamingTV", "StreamingMovies"]
+    df1 = pd.melt(df[df["InternetService"] != "No"][cols]).rename({'value': 'Has service'}, axis=1)
+    sns.countplot(data=df1, x='variable', hue='Has service', ax=axes[1, 2])
+    axes[1, 1].set(xlabel='Additional service', ylabel='Num of customers')
+    plt.show()
+
+    # Contract 유형에 따른 월청구요금과 해지여부를 시각화 합니다.
+    # 장기계약이고 월청구요금이 높을수록 해지율이 높은 것 같습니다.
+    # 전반적으로 월청구요금이 높을때 해지가능성이 높아보입니다.
+    fig, axes = plt.subplots(2, 2, sharey=False, tight_layout=True, figsize=(15, 6), num='data bar plot')
+
+    sns.boxplot(data=df, x='Contract', y='MonthlyCharges', hue='Churn', ax=axes[0, 0])
+    axes[0, 0].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    # PaymentMethod 유형에 따른 월청구요금과 해지여부를 시각화 합니다.
+    # Mailed check는 상대적으로 월청구요금이 낮습니다.
+    # Mailed check에서 해지고객과 비해지 고객의 차이가 큽니다.
+
+    sns.boxplot(data=df, x='PaymentMethod', y='MonthlyCharges', hue='Churn', ax=axes[0, 1])
+    axes[0, 1].legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+    # tenure에 따른 고객수를 계산합니다.
+    print(df['tenure'].value_counts().sort_index())
+    a = df['tenure'].value_counts().sort_index()
+    print(a.shape)
+
+    # tenure에 따른 고객수를 시각화
+    # 6개월 이후 retention이 상당히 낮아진다는 것을 알 수 있습니다.
+    # 반면, 장기 충성고객들은 70개월 이상 유지되고 있습니다. 소중한 고객들입니다.
+    ax_temp = axes[1, 0]
+    ax_temp.plot(np.arange(1, 73), a, 'o')
+    ax_temp.plot(np.arange(1, 73), a, '-', alpha=0.8)
+    ax_temp.set_xlabel('tenure')
+    ax_temp.set_ylabel('Number of customer')
+
+    plt.show()
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+
+    # CLV 계산 및 활용방안
+    # CAC와 함께 봐야하는 LTV
+
+    """
+        CLV(Customer Lifetime Value; LTV)를 계산합니다.
+            CLV는 고객생애 가치를 이야기 합니다.
+            고객이 확보된 이후 유지되는 기간동안의 가치입니다.
+            CAC와 LTV는 반드시 트래킹해야할 주요 지표라고 할 수 있습니다.
+            CAC보다 LTV가 최소 3배 이상 높은 것이 이상적입니다.
+            LTV (Lifetime value)
+            
+        LTV (Lifetime value)    
+            고객당 월 평균 이익(Avg monthly revenue per customer) x 평균 고객 유지개월 수(# months customer lifetime)
+            고객당 월 평균 이익(Avg monthly revenue per customer) / 월 평균 해지율(Monthly churn)
+            (Average Value of a Sale) x (Number of Repeat Transactions) x (Average Retention Time in Months or Years for a Typical Customer)
+            PLC(제품수명주기; Product Life Cycle) x ARPU(고객평균매출; Average Revenue Per User)
+            고객당 월 평균 이익(Avg Monthly Revenue per Customer x 고객당 매출 총 이익 (Gross Margin per Customer) / 월평균 해지율 (Monthly Churn Rate)
+            
+        CAC (Customer Acquisition Cost)
+            전체 세일즈 마케팅 비용 (Total sales and marketing exppense) / # 신규확보 고객 수 (# New customers acquired)
+            LTC:CAC Ratio
+    
+        LTV/CAC
+            1:1 더 많이 팔수록 더 많이 잃게 됩니다.
+            3:1 이상적인 비율입니다. (도메인마다 다를 수 있습니다.)
+            4:1 좋은 비즈니스 모델입니다.
+            5:1 마케팅에 투자를 덜 하고 있는 것으로 보입니다.
+    """
+
+    # * LTV (Lifetime value)
+    #  - 고객당 월 평균 이익(Avg monthly revenue per customer) x 평균 고객 유지개월 수(# months customer lifetime)
+    # LTV는 2100달러입니다.
+    # CAC는 700달러 정도인 것이 이상적입니다.
+    # 통신사의 CAC는 기기 보조금, 멤버십 혜택 등이 있습니다.
+
+    ltv = df['MonthlyCharges'].mean() * df['tenure'].mean()
+    print('LTV : ', ltv)
+    print("\n", "=" * 3, "02.", "=" * 3)
+
+    # Churn 해지할 고객을 예측합니다.
+    df2 = df.iloc[:, 1:]
+    print(df2.tail())
+
+    # target Value Churn Yes / No -> 1 / 0
+    # binary 형태의 카테고리 변수를 numeric variable로 변경해줍니다.
+    df2['Churn'].replace(to_replace='Yes', value=1, inplace=True)
+    df2['Churn'].replace(to_replace='No', value=0, inplace=True)
+
+    # 모든 categorical 변수를 더미 변수화 시킵니다.
+    df_dummies = pd.get_dummies(df2)
+    print(df_dummies.shape, df_dummies.tail())
+
+    # dummy 변수화한 데이터를 사용합니다.
+    y = df_dummies['Churn'].values
+    X = df_dummies.drop(columns='Churn')
+
+    # 변수 값을 0과 1사이 값으로 스케일링 해줍니다.
+    from sklearn.preprocessing import MinMaxScaler
+    features = X.columns.values
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    scaler.fit(X)
+    X = pd.DataFrame(scaler.transform(X))
+    X.columns = features
+    print(X.shape)
+    print(X.tail())
+
+    # Create Train & Test Data
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
+
+    # logistic regression
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression(max_iter=1000)
+    result = model.fit(X_train, y_train)
+
+    from sklearn import metrics
+    prediction_test = model.predict(X_test)
+    # Print the prediction accuracy
+    print(metrics.accuracy_score(y_test, prediction_test))
+
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+    # 모든 변수의 weights 값을 가져와서 시각화 합니다.
+    weights = pd.Series(model.coef_[0], index=X.columns.values)
+    plt.rcParams['figure.figsize'] = (20, 4)
+    weights.sort_values(ascending=False).plot(kind='bar')
+
+    """
+        결과 해석 및 적용 방안
+            데이터 탐색과정에서 주요한 변수일 것으로 보였던 변수들의 weight가 실제로 높습니다.
+            trnure가 길수록 충성고객의 churn은 낮아집니다. tenure가 아주 긴 유저들의 churn이 낮은 것이 이렇게 나타난 것으로 보입니다. (TotalCharges는 반대로 같은이치)
+            인터넷 서비스를 사용하지 않는 것은 고객의 churn을 줄입니다.
+            Fiber optic 인터넷 서비스 사용과 월단위 계약, Electronic Check를 사용하는 고객일수록 churn이 높아집니다.
+    """
+    # RandomForest
+    from sklearn.ensemble import RandomForestClassifier
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=101)
+    model_rf = RandomForestClassifier(n_estimators=1000, oob_score=True, n_jobs=-1,
+                                      random_state=50, max_features="auto",
+                                      max_leaf_nodes=30)
+    model_rf.fit(X_train, y_train)
+
+    # Make predictions
+    prediction_test = model_rf.predict(X_test)
+    print(metrics.accuracy_score(y_test, prediction_test))
+
+    importances = model_rf.feature_importances_
+    weights = pd.Series(importances, index=X.columns.values)
+    plt.rcParams["figure.figsize"] = (14, 4)
+    weights.sort_values(ascending=False).plot(kind='bar')
+
+    # random forest 알고리즘에서 monthly contract, tenure and total charges가 churn을 예측하는 가장 주요한 변수입니다.
+    # logistic regression의 결과와 EDA 결과와 매우 유사합니다.
+
+    """
+    적용 방안
+        중요도가 높은 변수를 활용한 마케팅 전략을 수립해봅니다.
+        계약 조건을 변경해볼 수 있습니다. 2년 장기계약을 최대한 유도해봅니다.
+        폰 보조금을 많이 지급해서 CAC가 높아지더라도 장기적으로 유지하여 LTV를 높인다면 통신사에게 더 유리합니다.
+        Fiber opptic 을 사용할수록 해지확률이 높아지는데, 그 이유를 찾아봅니다. 인터넷 통신 통합요금제 등의 영향일 수 있습니다.
+        etc
+        매달 고객별 churn을 예측하여 churn할 것으로 예측되는 고객들을 대상으로 선행적 조치를 취합니다.
+        예: 새 기기로 교체해주고 보조금을 지급한 뒤 2년 계약하는 쪽으로 유도하는 마케팅 전화를 돌려봅니다.
+    """
+
+    from sklearn.svm import SVC
+    model.svm = SVC(kernel='linear')
+    model.svm.fit(X_train, y_train)
+    preds = model.svm.predict(X_test)
+    metrics.accuracy_score(y_test, preds)
+
+    # Create the Confusion matrix
+    from sklearn.metrics import classification_report, confusion_matrix
+    print(confusion_matrix(y_test, preds))
+
+    # ADA Boost (AdaBoost Algorithm)
+    from sklearn.ensemble import AdaBoostClassifier
+    model = AdaBoostClassifier()
+    # n_estimators = 50 (default value)
+    # base_estimator = DecisionTreeClassifier (default value)
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+    metrics.accuracy_score(y_test, preds)
+
+    # XG Boost
+    from xgboost import XGBClassifier
+    model = XGBClassifier()
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+    metrics.accuracy_score(y_test, preds)
+
+
+# marketing_04()
+
+
+def marketing_05():
+    """
+        subject
+            Machine_Running
+        topic
+            ex4. marketing_data
+        content
+            05. Referral
+        Describe
+            리뷰 분석을 통하 소비자 조사
+        sub Contents
+            01. 분석할 데이터 파악, 경쟁사 고객 리뷰
+
+            STEP1. 형태소 분석
+            STEP2. 불용어 처리
+
+        텍스트 마이닝을 위한 전처리
+            KoNLP를 이용한 형태소 분석
+            KoNLPy가 제공하는 형태소분석기 중 하나인 Kkma를 사용합니다.
+            자세한 내용은 http://konlpy.org/ko/v0.4.3/morph/ 참조
+        형태소 분석기
+            한나눔 http://semanticweb.kaist.ac.kr/hannanum/index.html
+            트위터 https://github.com/twitter/twitter-korean-text
+            꼬꼬마 http://kkma.snu.ac.kr/documents/
+    """
+
+    print("\n", "=" * 5, "05", "=" * 5)
+    from konlpy.tag import Hannanum
+    from konlpy.tag import Twitter
+    from konlpy.tag import Kkma
+    hannanum = Hannanum()
+    twitter = Twitter()
+    kkma = Kkma()
+
+    """
+        꼬꼬마 형태소 분석기
+            문장을 형태소 단위로 분리하고 품사를 태깅합니다
+            품사태그는 일반명사(NNG), 고유명사(NNP), 동사(VV), 형용사(VA) 등이 있습니다
+            http://kkma.snu.ac.kr/documents/index.jsp?doc=postag 형태소 리스트를 확인
+    """
+    print(kkma.sentences(u'아버지가 방에 들어가셨다. 아버지 가방에 들어가셨다. 아버지가 방 안에 있는 가방에 들어가셨다.'))
+    print(kkma.pos(u'아버지가 방에 들어가셨다. 아버지 가방에 들어가셨다. 아버지가 방 안에 있는 가방에 들어가셨다.'))
+    print(hannanum.pos(u'아버지가 방에 들어가셨다. 아버지 가방에 들어가셨다. 아버지가 방 안에 있는 가방에 들어가셨다.'))
+    print(twitter.pos('아버지가 방에 들어가셨다. 아버지 가방에 들어가셨다. 아버지가 방 안에 있는 가방에 들어가셨다.'))
+
+    print("\n", "=" * 3, "01.", "=" * 3)
+    """
+        텍스트 마이닝 분석 및 시각화
+            센트룸 데이터를 먼저 분석해봅니다.
+    """
+
+    line_list = []
+    f = open("data_file/centrum_review.txt", encoding="utf-8")
+    for line in f:
+        line = kkma.nouns(line)
+        line_list.append(line)
+    f.close()
+    print("- 불러온 문서 :", len(line_list), "문장")
+
+    word_frequency = {}
+    noun_list = []
+    # 불용어 리스트를 여기에 추가합니다.
+    stop_list = ["배송", "만족", '구매', '감사']
+    line_number = 0
+    for line in line_list[:]:
+        line_number += 1
+        print(str(line_number) + "/" + str(len(line_list)), end="\r")
+        noun = []
+        for word in line:
+            if word.split("/")[0] not in stop_list and len(word.split("/")[0]) > 1:
+                noun.append(word.split("/")[0])
+                if word not in word_frequency.keys():
+                    word_frequency[word] = 1
+                else:
+                    word_frequency[word] += 1
+        noun_list.extend(noun)
+
+    # 단어별 출현빈도를 출력합니다.
+    word_count = []
+    for n, freq in word_frequency.items():
+        word_count.append([n, freq])
+    word_count.sort(key=lambda elem: elem[1], reverse=True)
+    for n, freq in word_count[:10]:
+        print(n + "\t" + str(freq))
+    # 추출한 명사 리스트를 활용해 명사만으로 이루어진 문서를 생성합니다.
+    noun_doc = ' '.join(noun_list)
+    noun_doc = noun_doc.strip()
+
+
+    """
+        서체 다운로드
+            시각화에서 서체 변경만으로도 완성도를 높일 수 있습니다.
+            다음의 링크에서 나눔스퀘어 서체를 다운로드 받아주세요.
+            참고: https://hangeul.naver.com/2017/nanum
+    """
+    # 워드클라우드 시각화
+    # pip install wordcloud
+
+    from wordcloud import WordCloud, ImageColorGenerator
+    import matplotlib.pyplot as plt
+
+    # 폰트업로드
+
+    # 워드클라우드 파라미터 설정
+    font_path = "font/NanumSquareB.otf"  # 폰트
+    background_color = "white"  # 배경색
+    margin = 3  # 모서리 여백 넓이
+    min_font_size = 7  # 최소 글자 크기
+    max_font_size = 150  # 최대 글자 크기
+    width = 500  # 이미지 가로 크기
+    height = 500  # 이미지 세로 크기
+    wc = WordCloud(font_path=font_path, background_color=background_color, margin=margin, \
+                   min_font_size=min_font_size, max_font_size=max_font_size, width=width, height=height)
+    wc.generate(noun_doc)
+
+    plt.figure(figsize=(10, 10))
+    plt.imshow(wc, interpolation="bilinear")
+    plt.axis("off")
+    plt.show()
+
+    print("\n", "=" * 3, "02.", "=" * 3)
+    """
+        텍스트에서 토픽/주제 찾기
+        LDA 토픽 모델링
+    """
+
+    # pip install gensim
+    # pip install corpora
+    # pip install wheel
+    import gensim
+    from gensim import corpora
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    topic = 5
+    keyword = 10
+    texts = []
+    resultList = []
+    stop_list = ["배송", "만족", "카페", "카페규정", "확인", "주수", "센트"]
+    for line in line_list:
+        words = line
+        if words != [""]:
+            tokens = [word for word in words if (len(word.split("/")[0]) > 1 and word.split("/")[0] not in stop_list)]
+            texts.append(tokens)
+    dictionary = corpora.Dictionary(texts)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+
+    ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=topic, id2word=dictionary, passes=10)
+    for num in range(topic):
+        resultList.append(ldamodel.show_topic(num, keyword))
+    print("\n", "=" * 3, "03.", "=" * 3)
+
+    print(resultList)
+    # unsupervide running 이라서 분석할때마다 결과가 좀 달라짐.
+    # gephi 시각화도 해보면 좋음..
+
+
+marketing_05()
+
 
 def marketing_temp():
     """
@@ -945,6 +1491,7 @@ def marketing_temp():
     """
 
     print("\n", "=" * 5, "temp", "=" * 5)
+
     print("\n", "=" * 3, "01.", "=" * 3)
     print("\n", "=" * 3, "02.", "=" * 3)
     print("\n", "=" * 3, "03.", "=" * 3)
