@@ -770,7 +770,29 @@ plt.show()
 df_order_review['answer_lead_time'] = df_order_review['review_answer_timestamp'] - df_order_review['review_creation_date']
 print(df_order_review['answer_lead_time'])
 
+# https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.dt.total_seconds.html
 
+# 고객의 리뷰 작성까지 걸리는 시간을 초 단위로 변환하기
+# df_order_review['answer_lead_time'][0].components
+df_order_review['answer_lead_time'][0].total_seconds()
 
+# 고객의 리뷰 작성까지 걸리는 시간을 초 단위로 변환하기
+df_order_review['answer_lead_time_seconds'] = df_order_review['answer_lead_time'].apply(lambda x : x.total_seconds())
+print(df_order_review['answer_lead_time_seconds'])
 
+# answer_lead_time_seconds 히스토그램
+plt.figure(figsize=(12,6))
+sns.distplot(df_order_review['answer_lead_time_seconds'])
 
+# answer_lead_time_seconds 이상치 확인
+plt.figure(figsize=(12,8))
+sns.boxplot(data=df_order_review['answer_lead_time_seconds'], color='yellow')
+
+# answer_lead_time_seconds 이상치 수
+print("이상치 수 : {} 건".format(outliers_iqr(df_order_review['answer_lead_time_seconds'])[0].shape[0]))
+
+# # answer_lead_time_seconds 이상치 출력
+df_order_review.loc[outliers_iqr(df_order_review['answer_lead_time_seconds'])[0],'answer_lead_time_seconds']
+
+# answer_lead_time 이상치 출력
+df_order_review.loc[outliers_iqr(df_order_review['answer_lead_time'])[0],'answer_lead_time'].sort_values(ascending=False)
