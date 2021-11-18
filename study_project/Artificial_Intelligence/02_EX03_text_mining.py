@@ -141,7 +141,7 @@ def text_mining_01():
     ranked_tags = Counter(word_count_dict).most_common(25)
     print(ranked_tags)
 
-    taglist_01 = pytagcloud.make_tags(sorted(word_count_dict.items(), key=operator.itemgetter(1), reverse=True)[:40], maxsize=60)
+    taglist_01 = pytagcloud.make_tags(sorted(word_count_dict.items(), key=operator.itemgetter(1), reverse=True)[:40], maxsize=20)
     taglist_02 = pytagcloud.make_tags(Counter(word_count_dict).most_common(25), maxsize=60)
     pytagcloud.create_tag_image(taglist_01, 'wordcloud_example_01.jpg', rectangular=False)
     pytagcloud.create_tag_image(taglist_02, 'wordcloud_example_02.jpg', rectangular=False)

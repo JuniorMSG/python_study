@@ -35,7 +35,7 @@ def font_set():
     plt.figure(figsize=(5, 5))
     plt.plot([0, 1], [0, 1], label='한글테스트용')
     plt.legend()
-    plt.show()
+    # plt.show()
 
 
 """
@@ -51,12 +51,9 @@ def font_set():
         01.
 """
 
-print("\n", "=" * 5, "01", "=" * 5)
 font_set()
 df_cust = pd.read_csv("data_file/business/olist_customers_dataset.csv")
-df_geolocation              = pd.read_csv("data_file/business/olist_geolocation_dataset.csv")
-df_order                    = pd.read_csv("data_file/business/olist_orders_dataset.csv")
-df_sellers                  = pd.read_csv("data_file/business/olist_sellers_dataset.csv")
+df_order = pd.read_csv("data_file/business/olist_orders_dataset.csv")
 
 
 # object 타입의 칼럼을 시간 데이터 타입으로 변경해줍니다.
@@ -72,37 +69,27 @@ df_order = pd.read_csv('data_file/business/olist_orders_dataset.csv',
                                     ])
 
 # 데이터 확인
-print(df_geolocation.shape)
 print(df_order.shape)
-print(df_sellers.shape)
 
 # 결측값 측정
-# print(df_customers.isnull().sum())
-# print(df_geolocation.isnull().sum())
-# print(df_order_items.isnull().sum())
-# print(df_order_reviews.isnull().sum())
-# print(df_order.isnull().sum())
-# print(df_sellers.isnull().sum())
-# print(df_products.isnull().sum())
-# print(df_product_category_name.isnull().sum())
+print(df_order.isnull().sum())
 
 # 전체 데이터 구조확인
 print(df_order.tail())
 
 # 전체 칼럼 확인
 print(df_order.columns)
-
 print(df_order.info())
 
-
+# 요약 확인
 print(df_order.describe())
 
-print("\n", "=" * 3, "01.", "=" * 3)
 print('결측치 총 개수 :', df_order.isnull().sum().sum())
 print('1번 칼럼이 빈 값 전체 출력', df_order[df_order.isnull().any(axis=1)])
 
+
 sns.heatmap(df_order.isnull(), cbar=False)
-plt.show()
+# plt.show()
 df_order_null = df_order[df_order.isnull().any(axis=1)]
 df_order_clean = df_order.dropna(axis=0)
 df_order_clean = df_order_clean.reset_index()
@@ -122,14 +109,12 @@ temp.loc['cancel_cnt', 'del_not_finished'] = B
 print(temp)
 
 temp.T.plot(kind='barh')
-plt.show()
+# plt.show()
 
 # object 제외하고 describe 출력
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.describe.html
 # print(df_order_clean.describe(exclude=[np.object]))
 
-
-print("\n", "=" * 3, "02.", "=" * 3)
 """
     olist_orders_dataset 테이블에 새로운 정보 추가
     order_purchase_timestamp : 구매 시작 날짜/시간
@@ -172,7 +157,7 @@ sns.distplot(df_order_clean['delivery_lead_time_D'], ax=ax_temp)
 ax_temp = axes[1, 0]
 ax_temp.set_title('estimated_date_miss_D')
 sns.distplot(df_order_clean['estimated_date_miss_D'], ax=ax_temp)
-plt.show()
+# plt.show()
 
 # 새로 추가한 칼럼들의 요약 정보
 
@@ -190,7 +175,7 @@ sns.boxplot(data=df_order_clean['delivery_lead_time_D'], ax=ax_temp)
 ax_temp = axes[1, 0]
 ax_temp.set_title('estimated_date_miss_D')
 sns.boxplot(data=df_order_clean['estimated_date_miss_D'], ax=ax_temp)
-plt.show()
+# plt.show()
 
 #이상한 데이터 확인
 # df_order_clean[df_order_clean['pay_lead_time_m']==44486]
@@ -260,15 +245,10 @@ sns.boxplot(data=df_order_time_clean['delivery_lead_time_D'], ax=ax_temp)
 ax_temp = axes[1, 0]
 ax_temp.set_title('estimated_date_miss_D')
 sns.boxplot(data=df_order_time_clean['estimated_date_miss_D'], ax=ax_temp)
-plt.show()
-
-
-print("\n", "=" * 3, "03.", "=" * 3)
+# plt.show()
 
 
 
-
-print("\n", "=" * 5, "02", "=" * 5)
 font_set()
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
 df_cust = pd.read_csv("data_file/business/olist_customers_dataset.csv")
@@ -294,9 +274,8 @@ cust_stat.columns = ['states', 'people_lives']
 print(cust_stat)
 
 sns.barplot(x='states', y='people_lives', data=cust_stat)
-plt.show()
+# plt.show()
 
-print("\n", "=" * 3, "01.", "=" * 3)
 
 # 도시별 고객이 살고 있는 비율
 df_customer_city = pd.DataFrame(df_cust['customer_city'].value_counts(normalize=True) * 100).reset_index()
@@ -326,30 +305,11 @@ ax1.axis('equal')
 
 plt.tight_layout()
 plt.title('도시별 고객이 살고 있는 비율', fontsize=20)
-plt.show()
+# plt.show()
 
 # plt.pie(df_customer_city['people_lives_perc'],labels=df_customer_city['city'], autopct='%.0f%%', shadow=True)
 
-print("\n", "=" * 3, "01.", "=" * 3)
-print("\n", "=" * 3, "02.", "=" * 3)
-print("\n", "=" * 3, "03.", "=" * 3)
 
-
-# business_03
-"""
-    subject
-        Machine_Running
-    topic
-        EX6. 비즈니스 데이터 실습
-    content
-        02. olist_order_items_dataset
-    Describe
-
-    sub Contents
-        01.
-"""
-
-print("\n", "=" * 5, "02", "=" * 5)
 font_set()
 # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_csv.html
 df_order_item = pd.read_csv("data_file/business/olist_order_items_dataset.csv")
@@ -367,8 +327,6 @@ print(df_order_item.sample(3))
 # 전체 칼럼 확인
 print(df_order_item.columns)
 print(df_order_item.info())
-
-print("\n", "=" * 3, "01.", "=" * 3)
 
 #  일단, item_id를 제일 많이 갖고 있는 order_id를 출력해봅니다.
 temp = pd.DataFrame(df_order_item.groupby(by=['order_id'])['order_item_id'].count().reset_index())
@@ -397,7 +355,6 @@ print(df_qt.sort_values('order_prod_quantity', ascending=False))
 df_qt[df_qt['order_id'] == '8272b63d03f5f79c56e9e4120aec44ef']
 
 
-print("\n", "=" * 3, "02.", "=" * 3)
 
 # 상품 별 주문수량을 추가해주기 위한 merge
 
@@ -429,7 +386,7 @@ df_order_item.reset_index(drop=True, inplace=True)
 print(df_order_item)
 
 print(df_order_item[df_order_item['order_id']=='8272b63d03f5f79c56e9e4120aec44ef'])
-print("\n", "=" * 3, "03.", "=" * 3)
+
 
 df_product = pd.read_csv("data_file/business/olist_products_dataset.csv")
 df_category = pd.read_csv("data_file/business/product_category_name_translation.csv")
@@ -566,7 +523,7 @@ ax = sns.barplot(data=df_cat_melt,
                  color="salmon"
                  )
 ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
-plt.show()
+# plt.show()
 
 """
     카테고리에 따른 월별 매출액이 어떠한지 확인해봅니다.
@@ -624,7 +581,7 @@ sns.barplot(data = df_health_beauty,
                 )
 # ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
 plt.xticks(fontsize=14, rotation=30)
-plt.show()
+# plt.show()
 
 # lineplot으로 시각화
 
@@ -635,7 +592,7 @@ ax = sns.lineplot(data = df_health_beauty,
                  palette="Blues_d"
                 )
 ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
-plt.show()
+# plt.show()
 
 
 # olist_order_payments 테이블
@@ -708,7 +665,7 @@ plt.pie(
 
 plt.axis('equal') #  equal length of X and Y axis
 plt.title('결제방식의 종류별 비율', fontsize=20)
-plt.show()
+# plt.show()
 
 
 df_order_review = pd.read_csv('data_file/business/olist_order_reviews_dataset.csv',
@@ -764,7 +721,7 @@ plt.pie(
 
 plt.axis('equal') #  equal length of X and Y axis
 plt.title('리뷰 점수별 분포 비율', fontsize=20)
-plt.show()
+# plt.show()
 
 # 고객의 리뷰 작성까지 걸리는 시간
 df_order_review['answer_lead_time'] = df_order_review['review_answer_timestamp'] - df_order_review['review_creation_date']
@@ -796,3 +753,179 @@ df_order_review.loc[outliers_iqr(df_order_review['answer_lead_time_seconds'])[0]
 
 # answer_lead_time 이상치 출력
 df_order_review.loc[outliers_iqr(df_order_review['answer_lead_time'])[0],'answer_lead_time'].sort_values(ascending=False)
+
+
+"""
+--- 06
+
+"""
+# 이번에는 고객의 만족도와 관계있는 칼럼들을 살펴보겠습니다.
+# 활용테이블
+# olist_orders_dataset (= df_order_clean)
+# olist_order_reviews_dataset (=df_order_review)
+
+# df_order_clean을 기준으로 merge
+df_satisfy = pd.merge(df_order_clean, df_order_review, how='left', on=['order_id'])
+print(df_satisfy.head())
+
+# 요약 정보 확인\
+# 총 23개의 칼럼
+print(df_satisfy.info())
+
+#결측치
+print(df_satisfy.isnull().sum())
+
+# columns 확인
+print(df_satisfy.columns)
+
+# 고객 만족도(review_score) 확인을 위한 데이터셋 생성
+df_cust_sf = df_satisfy[[
+                    'pay_lead_time_m',
+                    'delivery_lead_time_D',
+                    'estimated_date_miss_D',
+                    'answer_lead_time_seconds',
+                    'review_score'
+                    ]]
+print(df_cust_sf.sample(3))
+
+# 요약 정보 확인
+print(df_cust_sf.describe())
+
+# https://ko.wikipedia.org/wiki/%EC%83%81%EA%B4%80_%EB%B6%84%EC%84%9D
+# 상관 분석 corr
+
+# method='pearson' 안쓸경우  ValueError: Must pass 2-d input. shape=() 에러 발생
+corr = df_cust_sf.corr(method='pearson')
+print(corr)
+plt.figure(figsize=(15,10))
+sns.heatmap(data = corr,
+            annot=True,
+            fmt = '.2f',
+            linewidths=.5,
+            cmap='Blues'
+           )
+
+# => 상관관계 확인 결과, "review_score" 는 "delivery_lead_time" 과는 음의 상관관계를,
+# "estimated_date_miss" 와는 약한 양의 상관관계를, "answer_lead_time_seconds" 와는 상관관계가 거의 없는 것으로 나타났습니다.
+# 즉, 고객한테 배송이 걸리는 시간이 짧을수록, 예정된 날짜보다 빨리 배송될수록 고객의 만족도가 높아짐을 확인할 수 있습니다.
+
+# delivery_lead_time과 estimated_date_miss 간 상관관계를 산점도로 그려봅니다.
+plt.figure(figsize=(12,10))
+sns.scatterplot(x='delivery_lead_time_D', y='estimated_date_miss_D', data=df_cust_sf)
+plt.show()
+
+"""
+    "delivery_lead_time"과 "estimated_date_miss" 간에는 강한 음의 상관관계를 확인할 수 있는데, 
+    이건 고객한테 배송이 되는 날짜가 짧을(빠를) 경우, 시스템에서 예측한 소요시간과의 차이가 많이남을 의미합니다.
+"""
+
+"""
+    여섯번째로 살펴볼 테이블 : olist_geolocation_dataset
+    지리정보 데이터셋
+"""
+df_geo = pd.read_csv("data_file/business/olist_geolocation_dataset.csv")
+
+# 지리정보 데이터셋 info
+print(df_geo.info())
+print(df_geo.shape)
+
+# 지리정보 데이터 확인
+print(df_geo.sample(5))
+
+# state 별 도시 수 출력
+pd.DataFrame(df_geo.groupby(by=['geolocation_state'])['geolocation_city'].count().sort_values(ascending=False))
+
+# 위도와 경도 정보로 산점도 시각화
+df_geo.plot.scatter(x='geolocation_lng', y='geolocation_lat', figsize=(12,8),grid=True)
+
+# state별 색상을 구분하여 산점도로 시각화
+# row가 많아 시간이 조금 걸릴 수 있습니다.
+# plt.figure(figsize=(14, 10))
+# ax = sns.scatterplot(data=df_geo,
+#                      x='geolocation_lng',
+#                      y='geolocation_lat',
+#                      hue='geolocation_state')
+# plt.setp(ax.get_legend().get_texts(), fontsize='10')
+# plt.show()
+
+df_seller = pd.read_csv("data_file/business/olist_sellers_dataset.csv")
+
+# info 확인
+print(df_seller.info())
+print(pd.DataFrame(df_seller.groupby(by=['seller_state'])['seller_city'].count().sort_values(ascending=False)))
+
+# seller의 state 별 도시 수
+print(pd.DataFrame(df_seller.groupby(by=['seller_state'])['seller_city'].count().sort_values(ascending=False)))
+
+# 도시 별셀러의 수
+print(df_seller['seller_city'].value_counts())
+
+# 도시별 고객 수
+print(df_cust['customer_city'].value_counts())
+
+# 도시별 고객과 판매자 비율 비교
+# df_seller['seller_city']
+# df_cust['customer_city']
+
+# seller 데이터
+df_seller_lives = pd.DataFrame(df_seller['seller_city'].value_counts(normalize=True)*100)
+df_seller_lives.reset_index(inplace=True)
+df_seller_lives.columns = ['city', 'seller_lives']
+
+# customer 데이터
+df_cust_lives = pd.DataFrame(df_cust['customer_city'].value_counts(normalize=True)*100)
+df_cust_lives.reset_index(inplace=True)
+df_cust_lives.columns = ['city', 'customer_lives']
+
+# merge
+df_seller_cust_lives = pd.merge(df_seller_lives, df_cust_lives,\
+                        how='inner', on=['city'])
+
+# 고객 수가 많은 순서대로 출력
+df_seller_cust_lives = df_seller_cust_lives.sort_values(by='customer_lives', ascending=False)
+df_seller_cust_lives = df_seller_cust_lives.reset_index(drop=True)
+print(df_seller_cust_lives)
+
+# 고객 수가 많은 순서의 도시들 상위 10개만 출력
+top10 = df_seller_cust_lives[:10]
+
+top10 = pd.melt(top10, id_vars=['city'], value_vars=['seller_lives', 'customer_lives'])
+
+# 고객 수가 많은 순서의 도시들 상위 10개의 고객과 판매자 비율 비교
+
+plt.figure(figsize=(12,10))
+ax = sns.barplot(data = top10,
+                 x="city",
+                 y="value",
+                 hue="variable",
+#                  color="salmon",
+                 palette="Blues_d"
+                )
+ax.set_xticklabels(ax.get_xticklabels(),rotation=30)
+plt.show()
+"""
+    판매자와 고객 모두 상파울루에 제일 많이 거주하고 있지만, 판매자 비율이 상대적으로 더 높음을 알 수 있습니다. 
+    반면, 리우데자네이루의 경우, 판매자보다 고객의 비율이 더 높은데, 
+    이런 점을 볼 때, 상파울루가 다른 도시들에 비해 판매자 비율이 상대적으로 더 높은 이유를 조금 더 찾아보는 것도 의미가 있겠습니다.
+"""
+
+
+# 판매자 위치 정보 표시하기
+
+# column 이름 변경
+df_seller_temp = df_seller.copy()
+df_seller_temp.columns = ['seller_id', 'geolocation_zip_code_prefix', 'seller_city', 'seller_state']
+
+# merge
+df_seller_geo = pd.merge(df_seller_temp, df_geo, how='left', on=['geolocation_zip_code_prefix'])
+df_seller_geo.sample(5)
+
+# seller의 위경도 정보로 산점도 시각화하기
+# state별 색상 구분
+plt.figure(figsize=(14, 10))
+ax = sns.scatterplot(data=df_seller_geo,
+                     x='geolocation_lng',
+                     y='geolocation_lat',
+                     hue='geolocation_state')
+plt.setp(ax.get_legend().get_texts(), fontsize='12')
+plt.show()
